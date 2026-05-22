@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 from authoriser import refresh_access_token
-from strava_api import get_strava_athlete_profile, get_recent_activities
+from strava_api import get_strava_athlete_profile, get_recent_activities, get_recent_runs
 
 if __name__ == "__main__":
     load_dotenv()
@@ -26,6 +26,18 @@ if __name__ == "__main__":
         
         # 2. Fetch the activities data
         activities_data = get_recent_activities(fresh_access_token, num_activities=5)
+        run_data = get_recent_runs(fresh_access_token, num_runs_wanted=5)
+
+        if run_data:
+            print("\n--- Recent Runs ---")
+            for index, activity in enumerate(run_data, start=1):
+                name = activity.get('name')
+                sport_type = activity.get('sport_type')
+                
+                # We can do the math right here in our main file for now
+                distance_km = round(activity.get('distance', 0) / 1000, 2)
+                
+                print(f"{index}. {name} | {sport_type} | {distance_km} km")
         
         if activities_data:
             print("\n--- Recent Activities ---")
