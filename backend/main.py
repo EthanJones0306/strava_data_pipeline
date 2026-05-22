@@ -1,28 +1,39 @@
 import os
-import requests
-import json
 from dotenv import load_dotenv
 
-def get_strava_athlete_profile(access_token):
-    '''
-    Fetches athlete profile for personal data using strava API
-    '''
-    url = os.getenv("API_Base_URL") + "/athlete"
+from authoriser import refresh_access_token
+from strava_api import get_strava_athlete_profile, get_recent_activities
 
-    headers = {
-        "Authorization": f"Bearer {access_token}"
-    }
+if __name__ == "__main__":
+    load_dotenv()
 
-    try:
-        print("Fetching athlete profile...")
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            athlete_data = response.json()
-            print("Athlete profile fetched successfully.")
-            return athlete_data
-        else:
-            print(f"Failed to fetch athlete profile. Status code: {response.status_code}")
-            return None
-    except Exception as e:
-        print(f"An error occurred while fetching athlete profile: {e}")
-        return None
+    # Step A: Get a fresh token
+    fresh_access_token = refresh_access_token(
+        client_id=os.getenv("CLIENT_ID"), 
+        client_secret=os.getenv("CLIENT_SECRET"), 
+        refresh_token=os.getenv("REFRESH_TOKEN")
+    )
+    
+    # Step B: Use the fresh token to fetch and display your data
+    if fresh_access_token:
+        
+        # 1. Fetch the profile data
+        profile_data = get_strava_athlete_profile(fresh_access_token)
+        
+        if profile_data:
+            print("\n--- Profile Data ---")
+            print(f"Name: {profile_data.get('firstname')} {profile_data.get('lastname')}")
+        
+        # 2. Fetch the activities data
+        activities_data = get_recent_activities(fresh_access_token, num_activities=5)
+        
+        if activities_data:
+            print("\n--- Recent Activities ---")
+            for index, activity in enumerate(activities_data, start=1):
+                name = activity.get('name')
+                sport_type = activity.get('sport_type')
+                
+                # We can do the math right here in our main file for now
+                distance_km = round(activity.get('distance', 0) / 1000, 2)
+                
+                print(f"{index}. {name} | {sport_type} | {distance_km} km")
