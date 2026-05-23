@@ -36,13 +36,31 @@ if __name__ == "__main__":
                     pace = calculate_pace(activity.get('average_speed', 0))
                     
                     # Package the clean data into a dictionary
+                    # ... inside your for loop in main.py ...
+                    
+                    # 2. Package ALL the available summary data into a neat dictionary
                     clean_run_data = {
                         "run_name": name,
+                        "date": format_date(activity.get('start_date_local')),
+                        
+                        # Distance & Time
                         "distance_km": distance_km,
-                        "time": moving_time,
+                        "moving_time": moving_time,
                         "pace": pace,
-                        # Wrap the date right here!
-                        "date": format_date(activity.get('start_date_local')) 
+                        
+                        # Elevation
+                        "elevation_gain_m": activity.get('total_elevation_gain', 0),
+                        "highest_elevation_m": activity.get('elev_high', 0),
+                        
+                        # Power & Mechanics
+                        "average_watts": activity.get('average_watts', 0),
+                        "device_watts": activity.get('device_watts', False), # True if from a real power meter!
+                        "average_cadence": activity.get('average_cadence', 0),
+                        
+                        # Heart Rate & Effort
+                        "average_hr": activity.get('average_heartrate', 'N/A') if activity.get('has_heartrate') else 'N/A',
+                        "max_hr": activity.get('max_heartrate', 'N/A') if activity.get('has_heartrate') else 'N/A',
+                        "suffer_score": activity.get('suffer_score', 'N/A')
                     }
                     
                     print(f"Prepared data for: {name}")
