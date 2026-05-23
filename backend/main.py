@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 from authoriser import refresh_access_token
 from strava_api import get_strava_athlete_profile, get_recent_activities
 from data_processor import format_duration, calculate_pace
-
-# 1. Import our new webhook function!
 from make_integration import send_to_make_webhook
+
+from data_processor import format_duration, calculate_pace, format_date
 
 if __name__ == "__main__":
     load_dotenv()
@@ -41,7 +41,8 @@ if __name__ == "__main__":
                         "distance_km": distance_km,
                         "time": moving_time,
                         "pace": pace,
-                        "date": activity.get('start_date_local')
+                        # Wrap the date right here!
+                        "date": format_date(activity.get('start_date_local')) 
                     }
                     
                     print(f"Prepared data for: {name}")
