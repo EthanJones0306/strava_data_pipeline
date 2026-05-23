@@ -40,6 +40,7 @@ def get_recent_activities(access_token, num_activities=5):
     else:
         print(f"Error fetching activities: {response.status_code}")
         return None
+    
 def get_recent_runs(access_token, num_runs_wanted=5):
     """
     Fetches a specific number of recent RUN activities from the Strava API.
