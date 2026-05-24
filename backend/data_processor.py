@@ -44,20 +44,21 @@ def format_date(date_string):
     
 def package_comprehensive_run_data(summary_data, detailed_data):
     """
-    Combines Level 1 Summary data and Level 2 Detailed data into one clean, Make.com-ready dictionary.
+    Combines Level 1 Summary data and Level 2 Detailed data into one clean dictionary.
     """
-    # 1. Run our formatting math
     distance_km = round(summary_data.get('distance', 0) / 1000, 2)
     moving_time = format_duration(summary_data.get('moving_time', 0))
     pace = calculate_pace(summary_data.get('average_speed', 0))
     clean_date = format_date(summary_data.get('start_date_local'))
     
-    # 2. Extract new Level 2 Detailed Data (falling back to 0 or 'None' if unavailable)
     calories = detailed_data.get('calories', 0) if detailed_data else 0
     description = detailed_data.get('description', 'No description') if detailed_data else 'No description'
     gear = detailed_data.get('gear', {}).get('name', 'Unknown Gear') if detailed_data else 'Unknown Gear'
+    
+    # NEW: Grab the raw splits and pass them to our new formatter!
+    raw_splits = detailed_data.get('splits_metric', []) if detailed_data else []
+    formatted_splits = format_splits(raw_splits)
 
-    # 3. Build the ultimate dictionary
     clean_run_data = {
         "run_name": summary_data.get('name'),
         "date": clean_date,
@@ -82,9 +83,40 @@ def package_comprehensive_run_data(summary_data, detailed_data):
         "max_hr": summary_data.get('max_heartrate', 'N/A') if summary_data.get('has_heartrate') else 'N/A',
         "suffer_score": summary_data.get('suffer_score', 'N/A'),
         
-        # NEW: Deep Level 2 Metrics
         "calories": calories,
-        "gear_used": gear
+        "gear_used": gear,
+        
+        # NEW: Add the formatted string to the dictionary
+        "splits": formatted_splits
     }
     
     return clean_run_data
+
+def format_splits(splits_data):
+    """
+    Takes the raw splits_metric list from Strava and formats it into a readable string for AI consumption.
+    """
+    if not splits_data:
+        return "No splits recorded."
+        
+    split_strings = []
+    
+    # Loop through each kilometer lap
+    for split in splits_data:
+        lap = split.get('split')
+        
+        # Calculate the pace for this specific lap
+        speed = split.get('average_speed', 0)
+        pace = calculate_pace(speed)
+        
+        # Get the elevation change for this lap
+        elev = split.get('elevation_difference', 0)
+        
+        # Format it nicely and add it to our list
+        # Example output: "KM 1: 5:30 /km (+12m)"
+        # We use a + sign for positive elevation to make it clearer for the AI
+        elev_str = f"+{elev}m" if elev > 0 else f"{elev}m"
+        split_strings.append(f"KM {lap}: {pace} ({elev_str})")
+        
+    # Join all the laps together with a divider so it fits neatly into one text box in Google Docs
+    return " | ".join(split_strings)
