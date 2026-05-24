@@ -72,3 +72,22 @@ def get_recent_runs(access_token, num_runs_wanted=5):
     else:
         print(f"Error fetching runs: {response.status_code}")
         return None
+    
+def get_activity_details(access_token, activity_id):
+    """
+    Fetches the Level 2 detailed data for a specific activity ID.
+    Returns the detailed dictionary.
+    """
+    url = f"https://www.strava.com/api/v3/activities/{activity_id}"
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+    
+    print(f"   ↳ Fetching Level 2 details for activity ID: {activity_id}...")
+    response = requests.get(url, headers=headers)
+    
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"   ↳ Error fetching details: {response.status_code}")
+        return None

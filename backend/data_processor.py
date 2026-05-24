@@ -41,3 +41,50 @@ def format_date(date_string):
     except ValueError:
         # Just in case Strava changes their format, this prevents your script from crashing
         return date_string
+    
+def package_comprehensive_run_data(summary_data, detailed_data):
+    """
+    Combines Level 1 Summary data and Level 2 Detailed data into one clean, Make.com-ready dictionary.
+    """
+    # 1. Run our formatting math
+    distance_km = round(summary_data.get('distance', 0) / 1000, 2)
+    moving_time = format_duration(summary_data.get('moving_time', 0))
+    pace = calculate_pace(summary_data.get('average_speed', 0))
+    clean_date = format_date(summary_data.get('start_date_local'))
+    
+    # 2. Extract new Level 2 Detailed Data (falling back to 0 or 'None' if unavailable)
+    calories = detailed_data.get('calories', 0) if detailed_data else 0
+    description = detailed_data.get('description', 'No description') if detailed_data else 'No description'
+    gear = detailed_data.get('gear', {}).get('name', 'Unknown Gear') if detailed_data else 'Unknown Gear'
+
+    # 3. Build the ultimate dictionary
+    clean_run_data = {
+        "run_name": summary_data.get('name'),
+        "date": clean_date,
+        "description": description,
+        
+        # Distance & Time
+        "distance_km": distance_km,
+        "moving_time": moving_time,
+        "pace": pace,
+        
+        # Elevation
+        "elevation_gain_m": summary_data.get('total_elevation_gain', 0),
+        "highest_elevation_m": summary_data.get('elev_high', 0),
+        
+        # Power & Mechanics
+        "average_watts": summary_data.get('average_watts', 0),
+        "device_watts": summary_data.get('device_watts', False),
+        "average_cadence": summary_data.get('average_cadence', 0),
+        
+        # Heart Rate & Effort
+        "average_hr": summary_data.get('average_heartrate', 'N/A') if summary_data.get('has_heartrate') else 'N/A',
+        "max_hr": summary_data.get('max_heartrate', 'N/A') if summary_data.get('has_heartrate') else 'N/A',
+        "suffer_score": summary_data.get('suffer_score', 'N/A'),
+        
+        # NEW: Deep Level 2 Metrics
+        "calories": calories,
+        "gear_used": gear
+    }
+    
+    return clean_run_data
