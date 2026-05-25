@@ -91,3 +91,21 @@ def get_activity_details(access_token, activity_id):
     else:
         print(f"   ↳ Error fetching details: {response.status_code}")
         return None
+    
+def fetch_latest_run_details(access_token):
+    """
+    Combines the above functions to fetch the most recent run and its details in one go.
+    Returns a tuple of (summary_data, detailed_data) for the latest run.
+    """
+    recent_runs = get_recent_runs(access_token, num_runs_wanted=1)
+    
+    if recent_runs:
+        latest_run = recent_runs[0] # Get the most recent run (first in the list)
+        activity_id = latest_run.get('id')
+        
+        detailed_data = get_activity_details(access_token, activity_id)
+        
+        return latest_run, detailed_data
+    else:
+        print("No runs found.")
+        return None, None
