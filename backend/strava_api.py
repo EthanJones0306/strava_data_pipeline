@@ -14,7 +14,7 @@ def get_strava_athlete_profile(access_token):
     response = requests.get(url, headers=headers)
     
     if response.status_code == 200:
-        return response.json() # Returning the data instead of printing it!
+        return response.json() 
     else:
         print(f"Error fetching profile: {response.status_code}")
         return None
@@ -36,7 +36,7 @@ def get_recent_activities(access_token, num_activities=5):
     response = requests.get(url, headers=headers, params=params)
     
     if response.status_code == 200:
-        return response.json() # Returning the data!
+        return response.json() 
     else:
         print(f"Error fetching activities: {response.status_code}")
         return None
@@ -51,7 +51,7 @@ def get_recent_runs(access_token, num_runs_wanted=5):
         "Authorization": f"Bearer {access_token}"
     }
     params = {
-        # Ask Strava for a larger pool of mixed activities so we have plenty to filter!
+        # Get large pool of activities to filter through 
         "per_page": 30 
     }
 
@@ -64,7 +64,7 @@ def get_recent_runs(access_token, num_runs_wanted=5):
             if activity.get('sport_type') == 'Run':
                 runs.append(activity)
                 
-                # Stop looking once our list reaches the number of runs we wanted!
+                # Stop looking once list satisfies the number of runs wanted 
                 if len(runs) == num_runs_wanted:
                     break
                     

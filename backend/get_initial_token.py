@@ -28,7 +28,7 @@ if __name__ == "__main__":
     CLIENT_ID = os.getenv("CLIENT_ID") # "YOUR_CLIENT
     CLIENT_SECRET = os.getenv("CLIENT_SECRET") # "YOUR_CLIENT_SECRET"
 
-    # Here is your one-time code!
+    # One time code 
     AUTH_CODE = "17a02f846b18eceb78a2c3b9a4e67cf976ab9460" 
     
     exchange_code_for_token(CLIENT_ID, CLIENT_SECRET, AUTH_CODE)
