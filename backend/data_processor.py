@@ -31,34 +31,39 @@ def format_date(date_string):
         return "Unknown Date"
         
     try:
-        # 1. Convert the raw string into a Python datetime object
+        # Convert the raw string into a Python datetime object
         dt_object = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
         
-        # 2. Format the object into a readable string
+        # Format the object into a readable string
         # %B = Full month name, %d = Day, %Y = 4-digit Year
         return dt_object.strftime("%B %d, %Y")
         
     except ValueError:
-        # Just in case Strava changes their format, this prevents your script from crashing
         return date_string
     
 def package_comprehensive_run_data(summary_data, detailed_data):
     """
     Combines Level 1 Summary data and Level 2 Detailed data into one clean dictionary.
+    Now includes advanced Splits and Best Efforts!
     """
     distance_km = round(summary_data.get('distance', 0) / 1000, 2)
     moving_time = format_duration(summary_data.get('moving_time', 0))
     pace = calculate_pace(summary_data.get('average_speed', 0))
     clean_date = format_date(summary_data.get('start_date_local'))
     
+    # Detailed Data Extractions
     calories = detailed_data.get('calories', 0) if detailed_data else 0
     description = detailed_data.get('description', 'No description') if detailed_data else 'No description'
     gear = detailed_data.get('gear', {}).get('name', 'Unknown Gear') if detailed_data else 'Unknown Gear'
     
-    # NEW: Grab the raw splits and pass them to our new formatter!
+    # Advanced Analytics Formatters
     raw_splits = detailed_data.get('splits_metric', []) if detailed_data else []
     formatted_splits = format_splits(raw_splits)
+    
+    raw_best_efforts = detailed_data.get('best_efforts', []) if detailed_data else []
+    formatted_best_efforts = format_best_efforts(raw_best_efforts)
 
+    # The full dictionary
     clean_run_data = {
         "run_name": summary_data.get('name'),
         "date": clean_date,
@@ -83,40 +88,81 @@ def package_comprehensive_run_data(summary_data, detailed_data):
         "max_hr": summary_data.get('max_heartrate', 'N/A') if summary_data.get('has_heartrate') else 'N/A',
         "suffer_score": summary_data.get('suffer_score', 'N/A'),
         
+        # Level 2 Details
         "calories": calories,
         "gear_used": gear,
         
-        # NEW: Add the formatted string to the dictionary
-        "splits": formatted_splits
+        # Advanced Analytics Strings
+        "splits": formatted_splits,
+        "best_efforts": formatted_best_efforts
     }
     
     return clean_run_data
 
 def format_splits(splits_data):
     """
-    Takes the raw splits_metric list from Strava and formats it into a readable string for AI consumption.
+    Takes the raw splits_metric list from Strava and formats it into a highly detailed string.
+    Includes Time, Pace, Grade Adjusted Pace (GAP), Elevation, Heart Rate, and Pace Zone.
     """
     if not splits_data:
         return "No splits recorded."
         
     split_strings = []
     
-    # Loop through each kilometer lap
     for split in splits_data:
         lap = split.get('split')
         
-        # Calculate the pace for this specific lap
+        # 1. Moving Time for the lap
+        moving_time_sec = split.get('moving_time', 0)
+        minutes, seconds = divmod(moving_time_sec, 60)
+        time_str = f"{minutes}m{seconds:02d}s"
+        
+        # 2. Actual Pace
         speed = split.get('average_speed', 0)
         pace = calculate_pace(speed)
         
-        # Get the elevation change for this lap
+        # 3. Grade Adjusted Pace (GAP)
+        gap_speed = split.get('average_grade_adjusted_speed', 0)
+        gap_pace = calculate_pace(gap_speed) if gap_speed else "N/A"
+        
+        # 4. Elevation
         elev = split.get('elevation_difference', 0)
-        
-        # Format it nicely and add it to our list
-        # Example output: "KM 1: 5:30 /km (+12m)"
-        # We use a + sign for positive elevation to make it clearer for the AI
         elev_str = f"+{elev}m" if elev > 0 else f"{elev}m"
-        split_strings.append(f"KM {lap}: {pace} ({elev_str})")
         
-    # Join all the laps together with a divider so it fits neatly into one text box in Google Docs
-    return " | ".join(split_strings)
+        # 5. Heart Rate
+        hr = split.get('average_heartrate')
+        hr_str = f"{round(hr)} bpm" if hr else "No HR"
+        
+        # 6. Pace Zone
+        zone = split.get('pace_zone', 'N/A')
+        
+        # Build the sring for this split with all the data
+        # Example: "KM 1: 6m30s @ 6:29/km (GAP: 6:05/km) | +3.2m | 122 bpm | Zone 1"
+        detailed_lap = f"KM {lap}: {time_str} @ {pace} (GAP: {gap_pace}) | {elev_str} | {hr_str} | Zone {zone}"
+        
+        split_strings.append(detailed_lap)
+        
+    # Join all laps together with a clear divider
+    return " || ".join(split_strings)
+
+def format_best_efforts(best_efforts_data):
+    """
+    Takes the raw best_efforts list and formats it into a readable string.
+    Example: '400m: 1m29s | 1K: 3m45s | 1 mile: 6m10s'
+    """
+    if not best_efforts_data:
+        return "No best efforts recorded."
+        
+    efforts_strings = []
+    
+    for effort in best_efforts_data:
+        name = effort.get('name', 'Unknown')
+        
+        # Grab the time and format it 
+        moving_time_sec = effort.get('moving_time', 0)
+        minutes, seconds = divmod(moving_time_sec, 60)
+        time_str = f"{minutes}m {seconds:02d}s"
+        
+        efforts_strings.append(f"{name}: {time_str}")
+        
+    return " | ".join(efforts_strings)
