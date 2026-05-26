@@ -36,7 +36,7 @@ if __name__ == "__main__":
     )
     
     if fresh_access_token:
-        # Let's ask for the last 150 activities (you can change this number)
+        # Ask for a large pool of activities to filter through and find all runs
         print("Fetching activity list from Strava...")
         activities_data = get_recent_activities(fresh_access_token, num_activities=150)
         
@@ -51,15 +51,15 @@ if __name__ == "__main__":
                     activity_id = activity.get('id')
                     print(f"Processing: {run_name}...")
                     
-                    # 1. Fetch detailed data
+                    # Fetch detailed data
                     detailed_data = get_activity_details(fresh_access_token, activity_id)
                     
-                    # 2. Package it using our master function
+                    # Package it 
                     final_data = package_comprehensive_run_data(activity, detailed_data)
                     processed_runs.append(final_data)
                     
-                    # 3. RATE LIMITING: Sleep for 1.5 seconds to protect our API limit!
+                    # RATE LIMITING: Sleep for 1.5 seconds to protect API limits
                     time.sleep(1.5) 
             
-            # 4. Export all packaged runs to CSV
+            # Export all packaged runs to CSV
             export_to_csv(processed_runs)
