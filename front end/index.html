@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strava Running Dashboard</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-person-running"></i>
+                </div>
+                <h1>Strava <span class="accent-text">Dashboard</span></h1>
+            </div>
+            <div class="header-status" id="header-status">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Loading data...
+            </div>
+        </header>
+
+        <!-- Main Content Grid -->
+        <main class="dashboard-grid">
+            
+            <!-- Summary Stats Panel -->
+            <section class="stats-container">
+                <!-- Stat Card: Total Distance -->
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Distance</span>
+                        <div class="stat-icon distance-icon"><i class="fa-solid fa-route"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-total-distance">0.00 <span class="unit">km</span></div>
+                    <div class="stat-footer" id="stat-run-count">0 runs logged</div>
+                </div>
+
+                <!-- Stat Card: Average Pace -->
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Average Pace</span>
+                        <div class="stat-icon pace-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-avg-pace">0:00 <span class="unit">/km</span></div>
+                    <div class="stat-footer" id="stat-total-time">0h 0m total duration</div>
+                </div>
+
+                <!-- Stat Card: Elevation Gain -->
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Elevation</span>
+                        <div class="stat-icon elevation-icon"><i class="fa-solid fa-mountain"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-total-elevation">0 <span class="unit">m</span></div>
+                    <div class="stat-footer" id="stat-highest-elevation">Max Alt: 0m</div>
+                </div>
+
+                <!-- Stat Card: Calories Burned -->
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Energy Expended</span>
+                        <div class="stat-icon energy-icon"><i class="fa-solid fa-fire-flame-simple"></i></div>
+                    </div>
+                    <div class="stat-value" id="stat-total-calories">0 <span class="unit">kcal</span></div>
+                    <div class="stat-footer" id="stat-avg-calories">0 kcal avg per run</div>
+                </div>
+            </section>
+
+            <!-- Chart Visualization Card -->
+            <section class="chart-card glass-panel">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-chart-line header-icon"></i> Performance Trends</h2>
+                    <div class="chart-controls">
+                        <button class="btn-toggle active" id="btn-dataset-distance-pace">Distance vs Pace</button>
+                        <button class="btn-toggle" id="btn-dataset-hr-suffer">HR vs Suffer Score</button>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Bottom Section: Search, Filters & Run List -->
+            <section class="runs-list-panel glass-panel">
+                <div class="panel-header flex-column-mobile">
+                    <h2><i class="fa-solid fa-list-ul header-icon"></i> Run History</h2>
+                    
+                    <!-- Search & Filter Controls -->
+                    <div class="filter-bar">
+                        <!-- Search Box -->
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-input" placeholder="Search runs...">
+                        </div>
+                        
+                        <!-- Distance Category Filter -->
+                        <div class="select-wrapper">
+                            <i class="fa-solid fa-filter"></i>
+                            <select id="filter-distance">
+                                <option value="all">All Distances</option>
+                                <option value="short">Short (&lt; 5k)</option>
+                                <option value="medium">Medium (5k - 10k)</option>
+                                <option value="long">Long (10k - 20k)</option>
+                                <option value="half-full">Half-Marathon &amp; Up (&ge; 21k)</option>
+                            </select>
+                        </div>
+
+                        <!-- Sort By Selector -->
+                        <div class="select-wrapper">
+                            <i class="fa-solid fa-sort"></i>
+                            <select id="sort-by">
+                                <option value="date-desc">Newest First</option>
+                                <option value="date-asc">Oldest First</option>
+                                <option value="distance-desc">Longest Distance</option>
+                                <option value="distance-asc">Shortest Distance</option>
+                                <option value="pace-desc">Fastest Pace</option>
+                                <option value="pace-asc">Slowest Pace</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Runs Grid / Cards Container -->
+                <div class="runs-grid" id="runs-grid">
+                    <!-- Dynamic Run Cards will be inserted here by JavaScript -->
+                    <div class="empty-state">
+                        <i class="fa-solid fa-person-running"></i>
+                        <p>Loading historical runs data...</p>
+                    </div>
+                </div>
+
+                <!-- Pagination (Optional/Simple) -->
+                <div class="pagination-container" id="pagination-container">
+                    <button class="btn-page" id="btn-prev" disabled><i class="fa-solid fa-chevron-left"></i> Previous</button>
+                    <span class="page-info" id="page-info">Page 1 of 1</span>
+                    <button class="btn-page" id="btn-next" disabled>Next <i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Detailed Run Modal -->
+    <div class="modal-backdrop" id="run-modal">
+        <div class="modal-container">
+            <button class="modal-close" id="modal-close-btn">&times;</button>
+            
+            <div class="modal-header">
+                <div class="modal-title-wrapper">
+                    <h3 id="modal-run-name">Morning Run</h3>
+                    <span class="modal-date" id="modal-run-date">October 14, 2026</span>
+                </div>
+                <div class="modal-quick-stats">
+                    <div class="quick-stat">
+                        <span class="qs-label">Distance</span>
+                        <span class="qs-val" id="modal-stat-distance">0.00 km</span>
+                    </div>
+                    <div class="quick-stat">
+                        <span class="qs-label">Moving Time</span>
+                        <span class="qs-val" id="modal-stat-time">0m 0s</span>
+                    </div>
+                    <div class="quick-stat">
+                        <span class="qs-label">Pace</span>
+                        <span class="qs-val" id="modal-stat-pace">0:00 /km</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-body">
+                <!-- Description Section -->
+                <div class="modal-section" id="modal-desc-container">
+                    <h4>Description</h4>
+                    <p id="modal-run-desc" class="run-description">No description provided.</p>
+                </div>
+
+                <!-- Secondary Info Section -->
+                <div class="modal-section-grid">
+                    <div class="modal-mini-panel">
+                        <h5>Elevation Profile</h5>
+                        <div class="mini-stat-row">
+                            <span class="ms-lbl">Gain:</span>
+                            <span class="ms-val" id="modal-elev-gain">0 m</span>
+                        </div>
+                        <div class="mini-stat-row">
+                            <span class="ms-lbl">Highest Point:</span>
+                            <span class="ms-val" id="modal-elev-high">0 m</span>
+                        </div>
+                    </div>
+                    <div class="modal-mini-panel">
+                        <h5>Heart Rate &amp; Effort</h5>
+                        <div class="mini-stat-row">
+                            <span class="ms-lbl">Avg HR:</span>
+                            <span class="ms-val" id="modal-hr-avg">N/A</span>
+                        </div>
+                        <div class="mini-stat-row">
+                            <span class="ms-lbl">Max HR:</span>
+                            <span class="ms-val" id="modal-hr-max">N/A</span>
+                        </div>
+                        <div class="mini-stat-row">
+                            <span class="ms-lbl">Suffer Score:</span>
+                            <span class="ms-val score-highlight" id="modal-suffer-score">N/A</span>
+                        </div>
+                    </div>
+                    <div class="modal-mini-panel">
+                        <h5>Workout Details</h5>
+                        <div class="mini-stat-row">
+                            <span class="ms-lbl">Est. Calories:</span>
+                            <span class="ms-val" id="modal-calories">0 kcal</span>
+                        </div>
+                        <div class="mini-stat-row">
+                            <span class="ms-lbl">Avg Cadence:</span>
+                            <span class="ms-val" id="modal-cadence">0 rpm</span>
+                        </div>
+                        <div class="mini-stat-row">
+                            <span class="ms-lbl">Gear Used:</span>
+                            <span class="ms-val" id="modal-gear">Unknown</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs for Splits & Best Efforts -->
+                <div class="modal-tabs">
+                    <button class="tab-btn active" data-tab="tab-splits">Splits</button>
+                    <button class="tab-btn" data-tab="tab-efforts">Best Efforts</button>
+                </div>
+
+                <!-- Tab: Splits Content -->
+                <div class="tab-content active" id="tab-splits">
+                    <div class="table-responsive">
+                        <table class="splits-table">
+                            <thead>
+                                <tr>
+                                    <th>Split</th>
+                                    <th>Time</th>
+                                    <th>Pace</th>
+                                    <th>GAP Pace</th>
+                                    <th>Elevation</th>
+                                    <th>Heart Rate</th>
+                                    <th>Zone</th>
+                                </tr>
+                            </thead>
+                            <tbody id="splits-table-body">
+                                <!-- Laps dynamic contents -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tab: Best Efforts Content -->
+                <div class="tab-content" id="tab-efforts">
+                    <div class="efforts-grid" id="efforts-badges-container">
+                        <!-- Best effort badges dynamic content -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Script File -->
+    <script src="app.js"></script>
+</body>
+</html>
