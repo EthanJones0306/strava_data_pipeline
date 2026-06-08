@@ -5,6 +5,7 @@ from authoriser import refresh_access_token
 from strava_api import fetch_latest_run_details 
 from data_processor import package_comprehensive_run_data
 from make_integration import send_to_make_webhook
+from run_tracker import is_new_run, mark_run_sent
 
 if __name__ == "__main__":
     load_dotenv()
@@ -22,10 +23,14 @@ if __name__ == "__main__":
         summary_data, detailed_data = fetch_latest_run_details(fresh_access_token)
         
         if summary_data and detailed_data:
-            print(f"Processing: {summary_data.get('name')}")
+            activity_id = summary_data.get("id")
+            print(f"Processing: {summary_data.get('name')} (ID: {activity_id})")
             
-            
-            final_data = package_comprehensive_run_data(summary_data, detailed_data)
-            
-            if make_webhook_url:
-                send_to_make_webhook(make_webhook_url, final_data)
+            if not is_new_run(activity_id):
+                print("This run has already been sent — skipping.")
+            else:
+                final_data = package_comprehensive_run_data(summary_data, detailed_data)
+                
+                if make_webhook_url:
+                    send_to_make_webhook(make_webhook_url, final_data)
+                    mark_run_sent(activity_id)
