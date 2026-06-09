@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from run_store import get_all_runs, get_run, seed_from_csv
+from run_store import get_all_runs, get_run, seed_from_csv, sync_from_strava
 from analysis_store import list_analyses
 from analysis_service import get_or_generate_analysis
 
@@ -14,6 +14,7 @@ from analysis_service import get_or_generate_analysis
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     seed_from_csv()
+    sync_from_strava()
     yield
 
 

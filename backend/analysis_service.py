@@ -1,10 +1,8 @@
 import os
 from dotenv import load_dotenv
 
-from run_store import get_run
+from run_store import get_run, get_all_runs
 from analysis_store import get_analysis, save_analysis
-from authoriser import refresh_access_token
-from strava_api import get_recent_runs
 from gemini_analysis import analyze_run
 from run_tracker import get_preferred_model, set_preferred_model
 
@@ -21,7 +19,6 @@ def _run_to_comprehensive(run):
     else:
         pace_str = "N/A"
 
-    # Format splits to match format_splits style
     raw_splits = run.get("splits") or []
     if raw_splits:
         parts = []
@@ -38,7 +35,6 @@ def _run_to_comprehensive(run):
     else:
         splits_str = "No splits recorded."
 
-    # Format best efforts
     raw_be = run.get("best_efforts") or []
     if raw_be:
         be_parts = []
@@ -75,6 +71,25 @@ def _run_to_comprehensive(run):
     }
 
 
+def _run_to_context_format(run):
+    """Convert a run from runs.json to the raw Strava-like format _format_run_context expects."""
+    dist_m = run.get("distance_km", 0) * 1000
+    moving_sec = run.get("moving_time_sec", 0)
+    avg_speed = (dist_m / moving_sec) if moving_sec else 0
+
+    return {
+        "name": run.get("name", "Unnamed"),
+        "start_date_local": f"{run.get('date', '')}T00:00:00Z",
+        "distance": dist_m,
+        "moving_time": moving_sec,
+        "average_speed": avg_speed,
+        "average_heartrate": run.get("average_hr"),
+        "total_elevation_gain": run.get("elevation_gain_m", 0),
+        "average_watts": run.get("average_watts", 0),
+        "sport_type": "Run",
+    }
+
+
 def get_or_generate_analysis(activity_id):
     existing = get_analysis(activity_id)
     if existing:
@@ -93,24 +108,18 @@ def get_or_generate_analysis(activity_id):
         print("GEMINI_API_KEY not set")
         return None
 
-    token = refresh_access_token(
-        client_id=os.getenv("CLIENT_ID"),
-        client_secret=os.getenv("CLIENT_SECRET"),
-        refresh_token=os.getenv("REFRESH_TOKEN"),
-    )
-    if not token:
-        print("Failed to refresh Strava token")
-        return None
-
-    recent_raw = get_recent_runs(token, num_runs_wanted=5)
-    if not recent_raw:
-        recent_raw = []
+    # Use runs from local store for recent context (matches what frontend shows)
+    all_runs = get_all_runs().get("runs", [])
+    sorted_runs = sorted(all_runs, key=lambda r: r.get("date", ""), reverse=True)
+    # First item should be the run being analyzed, followed by 5 other recent runs
+    other_recent = [r for r in sorted_runs if r.get("id") != activity_id][:5]
+    recent_context = [_run_to_context_format(run)] + [_run_to_context_format(r) for r in other_recent]
 
     comprehensive = _run_to_comprehensive(run)
 
     preferred_model = get_preferred_model()
     result = analyze_run(
-        comprehensive, recent_raw, gemini_api_key,
+        comprehensive, recent_context, gemini_api_key,
         preferred_model=preferred_model,
     )
     if not result:

@@ -215,3 +215,57 @@ def get_run(activity_id):
         if r.get("id") == activity_id:
             return r
     return None
+
+
+def _date_in_store(date_str):
+    """Check if a run with this date already exists (to avoid CSV/Strava duplicates)."""
+    data = _load_runs()
+    for r in data["runs"]:
+        if r.get("date") == date_str:
+            return True
+    return False
+
+
+def sync_from_strava():
+    """Fetch recent runs from Strava and append any not already in the store."""
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    from authoriser import refresh_access_token
+    from strava_api import get_recent_runs, get_activity_details
+
+    token = refresh_access_token(
+        client_id=os.getenv("CLIENT_ID"),
+        client_secret=os.getenv("CLIENT_SECRET"),
+        refresh_token=os.getenv("REFRESH_TOKEN"),
+    )
+    if not token:
+        print("Strava sync: failed to authenticate")
+        return
+
+    strava_runs = get_recent_runs(token, num_runs_wanted=10)
+    if not strava_runs:
+        print("Strava sync: no runs found")
+        return
+
+    new_count = 0
+    for sr in strava_runs:
+        aid = sr.get("id")
+        date_raw = sr.get("start_date_local", "")
+        date_str = date_raw.split("T")[0] if "T" in date_raw else date_raw[:10]
+
+        # Skip if this activity_id already in store or same date exists
+        if any(r.get("id") == aid for r in _load_runs()["runs"]):
+            continue
+        if _date_in_store(date_str):
+            continue
+
+        details = get_activity_details(token, aid)
+        if details:
+            append_run(aid, sr, details)
+            new_count += 1
+
+    if new_count:
+        print(f"Strava sync: added {new_count} new run(s)")
+    else:
+        print("Strava sync: no new runs")
