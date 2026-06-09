@@ -51,33 +51,28 @@ const SplitRow = ({ split }) => {
 };
 
 export default function DeepDiveTab({ runs, stats }) {
-  const [selectedRun, setSelectedRun] = useState(null);
+  const [selectedRunId, setSelectedRunId] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
 
   const sortedRuns = useMemo(() => [...runs].sort((a, b) => new Date(b.date) - new Date(a.date)), [runs]);
 
   useEffect(() => {
-    if (!selectedRun) {
-      setAnalysis(null);
-      return;
-    }
-    const run = sortedRuns.find((r) => r.name === selectedRun);
-    if (!run) {
+    if (!selectedRunId) {
       setAnalysis(null);
       return;
     }
     setAnalysis(null);
     setAnalysisLoading(true);
-    fetchAnalysis(run.id).then((a) => {
+    fetchAnalysis(selectedRunId).then((a) => {
       setAnalysis(a);
       setAnalysisLoading(false);
     }).catch(() => setAnalysisLoading(false));
-  }, [selectedRun, sortedRuns]);
+  }, [selectedRunId]);
 
   const selectedRunData = useMemo(() => {
-    if (!selectedRun) return null;
-    const run = sortedRuns.find((r) => r.name === selectedRun);
+    if (!selectedRunId) return null;
+    const run = sortedRuns.find((r) => r.id === selectedRunId);
     if (!run) return null;
 
     const totalDist = run.distance_km;
@@ -102,7 +97,7 @@ export default function DeepDiveTab({ runs, stats }) {
       timeDisplay: fullTime,
       splits,
     };
-  }, [selectedRun, sortedRuns]);
+  }, [selectedRunId, sortedRuns]);
 
   const searchText = '';
   const filteredRuns = searchText
@@ -127,20 +122,20 @@ export default function DeepDiveTab({ runs, stats }) {
           <div className="space-y-1 overflow-y-auto" style={{ maxHeight: 470 }}>
             {filteredRuns.slice(0, 200).map((run) => (
               <button
-                key={run.name}
-                onClick={() => setSelectedRun(run.name)}
-                className={`w-full flex items-center justify-between py-2 px-3 rounded-lg transition-all duration-200 text-left ${selectedRun === run.name ? 'bg-strava-orange/10 border border-strava-orange/30' : 'hover:bg-bg-card border border-transparent'}`}
+                key={run.id}
+                onClick={() => setSelectedRunId(run.id)}
+                className={`w-full flex items-center justify-between py-2 px-3 rounded-lg transition-all duration-200 text-left ${selectedRunId === run.id ? 'bg-strava-orange/10 border border-strava-orange/30' : 'hover:bg-bg-card border border-transparent'}`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <Footprints size={14} className={`flex-shrink-0 ${selectedRun === run.name ? 'text-strava-orange' : 'text-text-muted'}`} />
+                  <Footprints size={14} className={`flex-shrink-0 ${selectedRunId === run.id ? 'text-strava-orange' : 'text-text-muted'}`} />
                   <div className="min-w-0">
-                    <p className={`text-xs font-semibold truncate ${selectedRun === run.name ? 'text-strava-orange' : 'text-text-primary'}`}>{run.name}</p>
+                    <p className={`text-xs font-semibold truncate ${selectedRunId === run.id ? 'text-strava-orange' : 'text-text-primary'}`}>{run.name}</p>
                     <p className="text-[10px] text-text-muted font-mono mt-0.5">{format(run.date, 'MMM dd, yyyy')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-xs font-mono text-text-muted">{Math.round(run.distance_km * 10) / 10}km</span>
-                  <ChevronRight size={12} className={`${selectedRun === run.name ? 'text-strava-orange' : 'text-text-muted'}`} />
+                  <ChevronRight size={12} className={`${selectedRunId === run.id ? 'text-strava-orange' : 'text-text-muted'}`} />
                 </div>
               </button>
             ))}
