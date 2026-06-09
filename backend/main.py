@@ -6,12 +6,14 @@ from authoriser import refresh_access_token
 from strava_api import fetch_latest_run_details, get_recent_runs
 from data_processor import package_comprehensive_run_data
 from make_integration import send_to_make_webhook
-from run_tracker import is_new_run, mark_run_sent
+from run_tracker import is_new_run, mark_run_sent, get_preferred_model, set_preferred_model
 from gemini_analysis import analyze_run
 from analysis_store import save_analysis, get_analysis
+from run_store import seed_from_csv, append_run
 
 if __name__ == "__main__":
     load_dotenv()
+    seed_from_csv()
 
     fresh_access_token = refresh_access_token(
         client_id=os.getenv("CLIENT_ID"), 
@@ -41,6 +43,7 @@ if __name__ == "__main__":
             else:
                 send_to_make_webhook(make_webhook_url, final_data)
                 mark_run_sent(activity_id)
+                append_run(activity_id, summary_data, detailed_data)
             
             # --- Step 2: Get AI coaching analysis (independent of Make) ---
             print("\n--- AI Coaching Analysis ---")
@@ -53,9 +56,14 @@ if __name__ == "__main__":
                 if not recent_runs_raw:
                     print("Could not fetch recent runs for analysis context.")
                 else:
-                    analysis = analyze_run(final_data, recent_runs_raw, gemini_api_key)
-                    if analysis:
-                        save_analysis(activity_id, analysis, final_data)
+                    preferred_model = get_preferred_model()
+                    if preferred_model:
+                        print(f"Using preferred model: {preferred_model}")
+                    result = analyze_run(final_data, recent_runs_raw, gemini_api_key, preferred_model=preferred_model)
+                    if result:
+                        save_analysis(activity_id, result["text"], final_data)
+                        set_preferred_model(result["model"])
+                        print(f"Preferred model saved: {result['model']}")
                     else:
                         print("Analysis failed — nothing saved. Will retry next run.")
         

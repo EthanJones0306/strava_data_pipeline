@@ -1,13 +1,11 @@
 import builtins
-import sys
 from datetime import datetime
 
-original_print = builtins.print
+_original_print = builtins.print
 
-def timestamped_print(*args, **kwargs):
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    if args:
-        args = (f"[{ts}] {args[0]}",) + args[1:]
-    original_print(*args, **kwargs)
 
-builtins.print = timestamped_print
+def _ts_print(*args, **kwargs):
+    _original_print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}]", *args, **kwargs)
+
+
+builtins.print = _ts_print

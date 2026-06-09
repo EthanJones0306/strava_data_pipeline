@@ -22,6 +22,12 @@ backend/state.json
 backend/analyses/*
 !backend/analyses/.gitkeep
 
+# Run store (auto-generated from CSV + new runs)
+backend/runs.json
+
 # IDEs and Editors
 .vscode/
 .idea/
+
+# Frontend
+frontend/node_modules/

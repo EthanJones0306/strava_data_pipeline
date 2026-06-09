@@ -80,7 +80,15 @@ Provide a concise coaching analysis covering:
 Keep the analysis to 3-4 short paragraphs. Be specific with numbers, not generic."""
 
 
-def analyze_run(latest_comprehensive, recent_runs_raw, api_key):
+def _models_to_try(preferred_model):
+    models = []
+    if preferred_model:
+        models.append(preferred_model)
+    models.extend(m for m in FALLBACK_MODELS if m != preferred_model)
+    return models
+
+
+def analyze_run(latest_comprehensive, recent_runs_raw, api_key, preferred_model=None):
     client = genai.Client(api_key=api_key)
 
     context_runs = recent_runs_raw[1:] if len(recent_runs_raw) > 1 else []
@@ -93,32 +101,32 @@ def analyze_run(latest_comprehensive, recent_runs_raw, api_key):
     prompt = _build_prompt(latest_comprehensive, context_lines)
 
     last_error = None
-    for attempt, model in enumerate(FALLBACK_MODELS):
+    for attempt, model in enumerate(_models_to_try(preferred_model)):
         try:
             print(f"Sending run to Gemini for analysis (model: {model})...")
             response = client.models.generate_content(model=model, contents=prompt)
             print("Analysis received from Gemini.")
-            return response.text
+            return {"text": response.text, "model": model}
 
         except genai_errors.ClientError as e:
             last_error = e
             if e.code == 429:
                 delay = _extract_retry_delay(e)
-                if attempt < len(FALLBACK_MODELS) - 1:
+                if attempt < len(_models_to_try(preferred_model)) - 1:
                     print(f"Model {model} hit rate limit (retry in {delay:.0f}s). Trying next model...")
                     time.sleep(min(delay, 5))
                 else:
                     print(f"All models hit rate limits. Last retry was {delay:.0f}s.")
             else:
                 print(f"Model {model} failed: {e}")
-                if attempt < len(FALLBACK_MODELS) - 1:
+                if attempt < len(_models_to_try(preferred_model)) - 1:
                     print("Trying next model...")
 
         except Exception as e:
             last_error = e
             print(f"Model {model} failed with unexpected error: {e}")
-            if attempt < len(FALLBACK_MODELS) - 1:
+            if attempt < len(_models_to_try(preferred_model)) - 1:
                 print("Trying next model...")
 
-    print(f"Coaching analysis failed after {len(FALLBACK_MODELS)} models. Last error: {last_error}")
+    print(f"Coaching analysis failed after {len(_models_to_try(preferred_model))} models. Last error: {last_error}")
     return None

@@ -12,7 +12,21 @@ def is_new_run(activity_id):
 
 def mark_run_sent(activity_id):
     """Records this activity_id as sent."""
-    _save_state({"last_sent_activity_id": activity_id})
+    state = _load_state()
+    state["last_sent_activity_id"] = activity_id
+    _save_state(state)
+
+
+def get_preferred_model():
+    """Returns the last successfully used Gemini model name, or None."""
+    return _load_state().get("preferred_model")
+
+
+def set_preferred_model(model_name):
+    """Saves the model name that worked so it's tried first next time."""
+    state = _load_state()
+    state["preferred_model"] = model_name
+    _save_state(state)
 
 
 def _load_state():
