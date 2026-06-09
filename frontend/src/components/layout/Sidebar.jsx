@@ -16,7 +16,7 @@ export default function Sidebar({ activeTab, onTabChange, collapsed, onToggle })
     >
       <div className="flex items-center gap-3 h-16 px-4 border-b border-border-primary flex-shrink-0">
         <div className="w-9 h-9 rounded-xl bg-strava-orange flex items-center justify-center flex-shrink-0 shadow-glow-orange">
-          <img src="/logo.svg" alt="Strava Dashboard" className="w-7 h-7 invert brightness-0" />
+          <img src="/app_logo.png" alt="Strava Dashboard" className="w-7 h-7 rounded-full" />
         </div>
         {!collapsed && (
           <div className="overflow-hidden">

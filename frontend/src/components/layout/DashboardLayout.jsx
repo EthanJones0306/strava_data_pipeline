@@ -95,7 +95,7 @@ export default function DashboardLayout() {
           }}
         >
           <img
-            src="/logo.svg"
+            src="/app_logo.png"
             alt="Strava Dashboard"
             className="w-24 h-24 mb-6"
             style={{

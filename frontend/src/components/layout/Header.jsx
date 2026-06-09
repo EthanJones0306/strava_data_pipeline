@@ -18,7 +18,7 @@ export default function Header({ stats, collapsed }) {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <img src="/logo.svg" alt="Strava Dashboard" className="w-8 h-8" />
+        <img src="/app_logo.png" alt="Strava Dashboard" className="w-8 h-8 rounded-full" />
         <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg bg-bg-card border border-border-primary/50">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
