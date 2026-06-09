@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { format } from 'date-fns';
-import { Search, Footprints, Clock, Route, Heart, Mountain, Flame, ChevronRight } from 'lucide-react';
+import { Search, Footprints, Clock, Route, Heart, Mountain, Flame, ChevronRight, Brain } from 'lucide-react';
+import { fetchAnalysis } from '../../data/api';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -43,6 +44,21 @@ const SplitRow = ({ split }) => {
 
 export default function DeepDiveTab({ runs, stats }) {
   const [selectedRun, setSelectedRun] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedRunData) {
+      setAnalysis(null);
+      return;
+    }
+    setAnalysis(null);
+    setAnalysisLoading(true);
+    fetchAnalysis(selectedRunData.id).then((a) => {
+      setAnalysis(a);
+      setAnalysisLoading(false);
+    }).catch(() => setAnalysisLoading(false));
+  }, [selectedRun]);
 
   const sortedRuns = useMemo(() => [...runs].sort((a, b) => new Date(b.date) - new Date(a.date)), [runs]);
 
@@ -166,6 +182,24 @@ export default function DeepDiveTab({ runs, stats }) {
                     {selectedRunData.splits.map((s) => (
                       <SplitRow key={s.km} split={s} />
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {analysisLoading && (
+                <div className="card p-5 flex items-center justify-center gap-3" style={{ minHeight: 100 }}>
+                  <div className="w-5 h-5 border-2 border-strava-orange border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm text-text-muted">Loading AI analysis...</span>
+                </div>
+              )}
+              {analysis && (
+                <div className="card p-5">
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <Brain size={18} className="text-strava-orange" />
+                    <h3 className="text-sm font-bold text-text-primary m-0">AI Coaching Analysis</h3>
+                  </div>
+                  <div className="text-xs text-text-secondary leading-relaxed whitespace-pre-line">
+                    {analysis.text}
                   </div>
                 </div>
               )}

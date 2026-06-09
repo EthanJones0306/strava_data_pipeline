@@ -66,7 +66,3 @@ def api_get_analysis(activity_id: int):
 def api_health():
     return {"status": "ok"}
 
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
