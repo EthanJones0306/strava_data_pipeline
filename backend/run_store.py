@@ -65,6 +65,7 @@ def _parse_splits(splits_str):
             result.append({
                 "km": km,
                 "pace_sec": pace,
+                "gap_sec": None,
                 "avg_hr": hr,
                 "elevation_diff_m": elev,
             })
@@ -175,6 +176,7 @@ def append_run(activity_id, summary_data, detailed_data):
         {
             "km": s.get("split"),
             "pace_sec": round(1000 / s.get("average_speed", 1)) if s.get("average_speed") else 0,
+            "gap_sec": round(1000 / s.get("average_grade_adjusted_speed", 1)) if s.get("average_grade_adjusted_speed") else None,
             "avg_hr": round(s.get("average_heartrate")) if s.get("average_heartrate") else None,
             "elevation_diff_m": round(s.get("elevation_difference", 0), 1),
         }

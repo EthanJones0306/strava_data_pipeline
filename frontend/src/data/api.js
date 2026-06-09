@@ -17,6 +17,7 @@ function mapRun(run) {
     km: s.km,
     pace_sec: s.pace_sec,
     pace_sec_per_km: s.pace_sec,
+    gap_sec: s.gap_sec,
     avg_hr: s.avg_hr,
     elev_diff: s.elevation_diff_m ?? s.elev_diff ?? 0,
     elevation_diff_m: s.elevation_diff_m ?? s.elev_diff ?? 0,

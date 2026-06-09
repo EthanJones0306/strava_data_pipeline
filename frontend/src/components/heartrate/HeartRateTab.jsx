@@ -80,7 +80,8 @@ export default function HeartRateTab({ runs, stats }) {
 
   const paceTicks = [];
   const tickStep = 60;
-  for (let p = Math.floor(minPace / tickStep) * tickStep; p <= Math.ceil(maxPace / tickStep) * tickStep; p += tickStep) {
+  const topPace = Math.ceil(Math.min(maxPace, 540) / tickStep) * tickStep;
+  for (let p = Math.floor(minPace / tickStep) * tickStep; p <= topPace; p += tickStep) {
     paceTicks.push(p);
   }
 
@@ -154,7 +155,7 @@ export default function HeartRateTab({ runs, stats }) {
               <XAxis
                 dataKey="pace"
                 type="number"
-                domain={[minPace - 30, Math.min(maxPace + 30, 570)]}
+                domain={[minPace - 30, Math.min(maxPace + 15, 555)]}
                 reversed
                 ticks={paceTicks}
                 tick={{ fill: '#71717A', fontSize: 10 }}

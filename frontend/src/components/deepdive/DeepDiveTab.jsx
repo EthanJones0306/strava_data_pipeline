@@ -19,6 +19,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 const SplitRow = ({ split }) => {
   const avgPace = split.pace_sec;
   const paceDisplay = `${Math.floor(avgPace / 60)}:${String(avgPace % 60).padStart(2, '0')}`;
+  const gapDisplay = split.gap_sec
+    ? `${Math.floor(split.gap_sec / 60)}:${String(split.gap_sec % 60).padStart(2, '0')}`
+    : null;
   const isFast = avgPace < 300;
   const isSlow = avgPace > 360;
   return (
@@ -26,6 +29,11 @@ const SplitRow = ({ split }) => {
       <div className="flex items-center gap-3">
         <span className={`text-xs font-bold font-mono w-6 ${isFast ? 'text-green-500' : isSlow ? 'text-red-500' : 'text-text-muted'}`}>KM {split.km}</span>
         <span className={`text-sm font-mono font-semibold ${isFast ? 'text-green-500' : isSlow ? 'text-red-500' : 'text-text-primary'}`}>{paceDisplay}</span>
+        {gapDisplay && (
+          <span className="text-[10px] font-mono text-text-muted bg-bg-card px-1.5 py-0.5 rounded" title="Grade Adjusted Pace">
+            GAP {gapDisplay}
+          </span>
+        )}
       </div>
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-1.5" title="Heart rate">
@@ -83,6 +91,7 @@ export default function DeepDiveTab({ runs, stats }) {
     const splits = (run.splits || []).map((s) => ({
       km: s.km,
       pace_sec: Math.round(s.pace_sec || s.moving_time_sec / (s.distance_km || 1)),
+      gap_sec: s.gap_sec,
       avg_hr: s.avg_hr ? Math.round(s.avg_hr) : null,
       elev_diff: Math.round(s.elevation_diff_m || 0),
     }));
