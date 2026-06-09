@@ -16,6 +16,8 @@ def free_port(port):
     except (subprocess.CalledProcessError, ValueError, OSError):
         pass
 
+# lsof -ti :8000 | xargs kill -9
+
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     sys.path.insert(0, os.getcwd())

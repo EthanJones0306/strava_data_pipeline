@@ -47,20 +47,25 @@ export default function DeepDiveTab({ runs, stats }) {
   const [analysis, setAnalysis] = useState(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
 
+  const sortedRuns = useMemo(() => [...runs].sort((a, b) => new Date(b.date) - new Date(a.date)), [runs]);
+
   useEffect(() => {
-    if (!selectedRunData) {
+    if (!selectedRun) {
+      setAnalysis(null);
+      return;
+    }
+    const run = sortedRuns.find((r) => r.name === selectedRun);
+    if (!run) {
       setAnalysis(null);
       return;
     }
     setAnalysis(null);
     setAnalysisLoading(true);
-    fetchAnalysis(selectedRunData.id).then((a) => {
+    fetchAnalysis(run.id).then((a) => {
       setAnalysis(a);
       setAnalysisLoading(false);
     }).catch(() => setAnalysisLoading(false));
-  }, [selectedRun]);
-
-  const sortedRuns = useMemo(() => [...runs].sort((a, b) => new Date(b.date) - new Date(a.date)), [runs]);
+  }, [selectedRun, sortedRuns]);
 
   const selectedRunData = useMemo(() => {
     if (!selectedRun) return null;
