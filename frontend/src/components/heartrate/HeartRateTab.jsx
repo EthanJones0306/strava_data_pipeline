@@ -78,18 +78,11 @@ export default function HeartRateTab({ runs, stats }) {
   const maxPace = Math.max(...hrVsPaceData.map((d) => d.pace), 600);
   const minPace = Math.min(...hrVsPaceData.map((d) => d.pace), 240);
 
-  const paceTicks = [];
-  const tickStep = 60;
-  const topPace = Math.ceil(Math.min(maxPace, 540) / tickStep) * tickStep;
-  for (let p = Math.floor(minPace / tickStep) * tickStep; p <= topPace; p += tickStep) {
-    paceTicks.push(p);
-  }
-
   const regression = computeRegression(hrVsPaceData, 'pace', 'hr');
   const trendLineData = regression
     ? [
-        { pace: minPace - 30, hr: regression.slope * (minPace - 30) + regression.intercept },
-        { pace: maxPace + 30, hr: regression.slope * (maxPace + 30) + regression.intercept },
+        { pace: minPace, hr: regression.slope * minPace + regression.intercept },
+        { pace: maxPace, hr: regression.slope * maxPace + regression.intercept },
       ]
     : [];
 
@@ -155,9 +148,8 @@ export default function HeartRateTab({ runs, stats }) {
               <XAxis
                 dataKey="pace"
                 type="number"
-                domain={[minPace - 30, Math.min(maxPace + 15, 555)]}
+                domain={['dataMin', 'dataMax']}
                 reversed
-                ticks={paceTicks}
                 tick={{ fill: '#71717A', fontSize: 10 }}
                 axisLine={false}
                 tickLine={false}
