@@ -2,10 +2,18 @@ import json
 import os
 import csv
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 RUNS_PATH = os.path.join(os.path.dirname(__file__), "runs.json")
 CSV_PATH = os.path.join(os.path.dirname(__file__), "historical_runs.csv")
+
+# Sync status tracked in memory (reset on server restart)
+_last_sync_status = {
+    "ok": None,
+    "timestamp": None,
+    "error": None,
+    "new_runs": 0,
+}
 
 
 # --- Parsing helpers ---
@@ -226,6 +234,10 @@ def _date_in_store(date_str):
     return False
 
 
+def get_sync_status():
+    return dict(_last_sync_status)
+
+
 def sync_from_strava():
     """Fetch recent runs from Strava and append any not already in the store."""
     from dotenv import load_dotenv
@@ -233,6 +245,9 @@ def sync_from_strava():
 
     from authoriser import refresh_access_token
     from strava_api import get_recent_runs, get_activity_details
+    from datetime import datetime, timezone
+
+    _last_sync_status["timestamp"] = datetime.now(timezone.utc).isoformat()
 
     token = refresh_access_token(
         client_id=os.getenv("CLIENT_ID"),
@@ -240,11 +255,13 @@ def sync_from_strava():
         refresh_token=os.getenv("REFRESH_TOKEN"),
     )
     if not token:
+        _last_sync_status.update(ok=False, error="Strava auth failed", new_runs=0)
         print("Strava sync: failed to authenticate")
         return
 
     strava_runs = get_recent_runs(token, num_runs_wanted=10)
     if not strava_runs:
+        _last_sync_status.update(ok=True, error=None, new_runs=0)
         print("Strava sync: no runs found")
         return
 
@@ -254,7 +271,6 @@ def sync_from_strava():
         date_raw = sr.get("start_date_local", "")
         date_str = date_raw.split("T")[0] if "T" in date_raw else date_raw[:10]
 
-        # Skip if this activity_id already in store or same date exists
         if any(r.get("id") == aid for r in _load_runs()["runs"]):
             continue
         if _date_in_store(date_str):
@@ -264,6 +280,8 @@ def sync_from_strava():
         if details:
             append_run(aid, sr, details)
             new_count += 1
+
+    _last_sync_status.update(ok=True, error=None, new_runs=new_count)
 
     if new_count:
         print(f"Strava sync: added {new_count} new run(s)")

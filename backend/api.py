@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from run_store import get_all_runs, get_run, seed_from_csv, sync_from_strava
+from run_store import get_all_runs, get_run, seed_from_csv, sync_from_strava, get_sync_status
 from analysis_store import list_analyses
 from analysis_service import get_or_generate_analysis
 
@@ -66,5 +66,11 @@ def api_get_analysis(activity_id: int):
 
 @app.get("/api/health")
 def api_health():
-    return {"status": "ok"}
+    return {"status": "ok", "strava_sync": get_sync_status()}
+
+
+@app.post("/api/sync")
+def api_trigger_sync():
+    sync_from_strava()
+    return get_sync_status()
 
