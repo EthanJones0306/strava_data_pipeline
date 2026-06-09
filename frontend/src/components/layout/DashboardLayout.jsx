@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { parseCSV } from '../../data/parseCSV';
 import { computeStats } from '../../data/computeStats';
+import { fetchRuns } from '../../data/api';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import OverviewTab from '../overview/OverviewTab';
@@ -12,8 +13,27 @@ import DeepDiveTab from '../deepdive/DeepDiveTab';
 export default function DashboardLayout() {
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [apiRuns, setApiRuns] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const runs = useMemo(() => parseCSV(), []);
+  useEffect(() => {
+    fetchRuns()
+      .then((runs) => {
+        setApiRuns(runs);
+        setLoading(false);
+      })
+      .catch(() => {
+        setApiRuns(null);
+        setLoading(false);
+      });
+  }, []);
+
+  const runs = useMemo(() => {
+    if (apiRuns) return apiRuns;
+    if (!loading) return parseCSV();
+    return [];
+  }, [apiRuns, loading]);
+
   const stats = useMemo(() => computeStats(runs), [runs]);
 
   const renderTab = () => {
@@ -43,9 +63,18 @@ export default function DashboardLayout() {
       >
         <Header stats={stats} collapsed={sidebarCollapsed} />
         <main className="flex-1 p-6 overflow-y-auto">
-          <div className="animate-fade-in" key={activeTab}>
-            {renderTab()}
-          </div>
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-strava-orange border-t-transparent rounded-full animate-spin" />
+                <p className="text-sm text-text-muted font-medium">Loading runs...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="animate-fade-in" key={activeTab}>
+              {renderTab()}
+            </div>
+          )}
         </main>
       </div>
     </div>

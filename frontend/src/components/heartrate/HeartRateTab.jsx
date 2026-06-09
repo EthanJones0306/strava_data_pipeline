@@ -154,7 +154,7 @@ export default function HeartRateTab({ runs, stats }) {
               <XAxis
                 dataKey="pace"
                 type="number"
-                domain={[minPace - 30, maxPace + 30]}
+                domain={[minPace - 30, Math.min(maxPace + 30, 570)]}
                 reversed
                 ticks={paceTicks}
                 tick={{ fill: '#71717A', fontSize: 10 }}
