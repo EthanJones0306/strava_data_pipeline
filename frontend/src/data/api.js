@@ -24,9 +24,9 @@ function mapRun(run) {
 
   const bestEfforts = (run.best_efforts || []).map((be) => ({
     label: be.label,
-    distance_m: be.distance_m,
+    distance_m: be.distance_m ?? 0,
     time_sec: be.time_sec,
-    pace_sec_per_km: be.time_sec / (be.distance_m / 1000),
+    pace_sec_per_km: be.distance_m ? Math.round(be.time_sec / (be.distance_m / 1000)) : 0,
   }));
 
   return {

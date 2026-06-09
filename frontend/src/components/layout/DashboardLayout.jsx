@@ -15,6 +15,8 @@ export default function DashboardLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [apiRuns, setApiRuns] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [welcomeFading, setWelcomeFading] = useState(false);
 
   useEffect(() => {
     fetchRuns()
@@ -26,6 +28,12 @@ export default function DashboardLayout() {
         setApiRuns(null);
         setLoading(false);
       });
+  }, []);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setWelcomeFading(true), 2000);
+    const t2 = setTimeout(() => setShowWelcome(false), 3000);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   const runs = useMemo(() => {
@@ -77,6 +85,41 @@ export default function DashboardLayout() {
           )}
         </main>
       </div>
+
+      {showWelcome && (
+        <div
+          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-bg-primary"
+          style={{
+            opacity: welcomeFading ? 0 : 1,
+            transition: 'opacity 1s ease-in-out',
+          }}
+        >
+          <img
+            src="/logo.svg"
+            alt="Strava Dashboard"
+            className="w-24 h-24 mb-6"
+            style={{
+              animation: 'welcomePulse 2s ease-in-out',
+            }}
+          />
+          <h1
+            className="text-3xl font-bold text-text-primary mb-2"
+            style={{
+              animation: 'welcomeSlideUp 1s ease-out both',
+            }}
+          >
+            Strava Dashboard
+          </h1>
+          <p
+            className="text-sm text-strava-orange font-medium"
+            style={{
+              animation: 'welcomeSlideUp 1s ease-out 0.3s both',
+            }}
+          >
+            Your running journey, visualized
+          </p>
+        </div>
+      )}
     </div>
   );
 }

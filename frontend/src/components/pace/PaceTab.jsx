@@ -39,7 +39,7 @@ export default function PaceTab({ runs, stats }) {
 
   const effortData = (stats.bestEfforts || []).map((be) => ({
     label: be.label,
-    pace: Math.round(be.time_sec / (be.distance_m / 1000)),
+    pace: be.distance_m ? Math.round(be.time_sec / (be.distance_m / 1000)) : 0,
     timeDisplay: be.time_sec >= 3600
       ? `${Math.floor(be.time_sec / 3600)}h ${Math.floor((be.time_sec % 3600) / 60)}m ${be.time_sec % 60}s`
       : `${Math.floor(be.time_sec / 60)}:${String(be.time_sec % 60).padStart(2, '0')}`,
@@ -141,7 +141,7 @@ export default function PaceTab({ runs, stats }) {
                   </div>
                 </div>
                 <span className="text-sm font-mono font-bold text-strava-orange">
-                  {Math.floor(effort.pace / 60)}:{String(Math.round(effort.pace % 60)).padStart(2, '0')} /km
+                  {effort.pace ? `${Math.floor(effort.pace / 60)}:${String(Math.round(effort.pace % 60)).padStart(2, '0')} /km` : '-'}
                 </span>
               </div>
             ))}

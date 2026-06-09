@@ -67,6 +67,15 @@ def _parse_best_efforts(be_str):
     if not be_str or be_str == "No best efforts recorded.":
         return []
     result = []
+    _DISTANCE_MAP = {
+        "400m": 400, "800m": 800, "1000m": 1000, "1K": 1000,
+        "1/2 mile": 804, "1 Mile": 1609, "1 mile": 1609,
+        "2 Mile": 3218, "2 mile": 3218, "5K": 5000, "5 km": 5000,
+        "10 mile": 16093, "10K": 10000, "10 km": 10000,
+        "15K": 15000, "20K": 20000,
+        "Half Marathon": 21097, "Half-Marathon": 21097,
+        "Marathon": 42195,
+    }
     for effort in be_str.split(" | "):
         match = re.match(r"(.+?): (\d+)m\s*(\d+)s", effort.strip())
         if match:
@@ -74,7 +83,11 @@ def _parse_best_efforts(be_str):
             minutes = int(match.group(2))
             seconds = int(match.group(3))
             time_sec = minutes * 60 + seconds
-            result.append({"label": label, "time_sec": time_sec})
+            result.append({
+                "label": label,
+                "time_sec": time_sec,
+                "distance_m": _DISTANCE_MAP.get(label, 0),
+            })
     return result
 
 

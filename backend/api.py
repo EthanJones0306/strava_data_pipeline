@@ -7,7 +7,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from run_store import get_all_runs, get_run, seed_from_csv
-from analysis_store import list_analyses, get_analysis
+from analysis_store import list_analyses
+from analysis_service import get_or_generate_analysis
 
 
 @asynccontextmanager
@@ -37,7 +38,7 @@ def api_get_latest_run():
     if not data["runs"]:
         raise HTTPException(404)
     run = data["runs"][-1]
-    analysis = get_analysis(run["id"])
+    analysis = get_or_generate_analysis(run["id"])
     return {"run": run, "analysis": analysis}
 
 
@@ -56,9 +57,9 @@ def api_get_analyses():
 
 @app.get("/api/analyses/{activity_id}")
 def api_get_analysis(activity_id: int):
-    a = get_analysis(activity_id)
+    a = get_or_generate_analysis(activity_id)
     if not a:
-        raise HTTPException(404, "Analysis not found")
+        raise HTTPException(404, "Analysis not found or generation failed")
     return a
 
 
