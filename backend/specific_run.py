@@ -1,5 +1,6 @@
 import os
 import sys
+import log_util
 from datetime import datetime
 from dotenv import load_dotenv
 
