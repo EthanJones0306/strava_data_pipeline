@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { format } from 'date-fns';
-import { Footprints, Clock, Route, Heart, Mountain, Flame, ChevronRight, Brain } from 'lucide-react';
+import { Search, X, SlidersHorizontal, Footprints, Clock, Route, Heart, Mountain, Flame, ChevronRight, Brain } from 'lucide-react';
 import { fetchAnalysis } from '../../data/api';
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -56,6 +56,20 @@ export default function DeepDiveTab({ runs }) {
   const [analysisLoading, setAnalysisLoading] = useState(false);
   const [sortField, setSortField] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
+  const [nameFilter, setNameFilter] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [distMin, setDistMin] = useState('');
+  const [distMax, setDistMax] = useState('');
+  const [paceMin, setPaceMin] = useState('');
+  const [paceMax, setPaceMax] = useState('');
+  const [timeMin, setTimeMin] = useState('');
+  const [timeMax, setTimeMax] = useState('');
+  const [elevMin, setElevMin] = useState('');
+  const [elevMax, setElevMax] = useState('');
+  const [hrMin, setHrMin] = useState('');
+  const [hrMax, setHrMax] = useState('');
 
   const SORT_OPTIONS = [
     { key: 'date', label: 'Date', defaultDir: 'desc' },
@@ -76,9 +90,98 @@ export default function DeepDiveTab({ runs }) {
     }
   };
 
+  function parsePaceInput(val) {
+    if (!val) return null;
+    const parts = val.trim().split(':');
+    if (parts.length === 2) {
+      const m = parseInt(parts[0]);
+      const s = parseInt(parts[1]);
+      return isNaN(m) || isNaN(s) ? null : m * 60 + s;
+    }
+    return null;
+  }
+
+  function parseTimeInput(val) {
+    if (!val) return null;
+    const parts = val.trim().split(':');
+    let total = 0;
+    if (parts.length === 3) {
+      total = parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+    } else if (parts.length === 2) {
+      total = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
+    return isNaN(total) ? null : total;
+  }
+
+  const hasActiveFilters = nameFilter || dateFrom || dateTo || distMin || distMax || paceMin || paceMax || timeMin || timeMax || elevMin || elevMax || hrMin || hrMax;
+
+  const clearFilters = () => {
+    setNameFilter('');
+    setDateFrom(''); setDateTo('');
+    setDistMin(''); setDistMax('');
+    setPaceMin(''); setPaceMax('');
+    setTimeMin(''); setTimeMax('');
+    setElevMin(''); setElevMax('');
+    setHrMin(''); setHrMax('');
+  };
+
   const sortedRuns = useMemo(() => {
-    const sorted = [...runs];
-    sorted.sort((a, b) => {
+    let result = [...runs];
+
+    if (nameFilter) {
+      const q = nameFilter.toLowerCase();
+      result = result.filter(r => r.name.toLowerCase().includes(q));
+    }
+    if (dateFrom) {
+      const from = new Date(dateFrom);
+      result = result.filter(r => new Date(r.date) >= from);
+    }
+    if (dateTo) {
+      const to = new Date(dateTo + 'T23:59:59');
+      result = result.filter(r => new Date(r.date) <= to);
+    }
+    if (distMin !== '') {
+      const min = parseFloat(distMin);
+      if (!isNaN(min)) result = result.filter(r => r.distance_km >= min);
+    }
+    if (distMax !== '') {
+      const max = parseFloat(distMax);
+      if (!isNaN(max)) result = result.filter(r => r.distance_km <= max);
+    }
+    if (paceMin !== '') {
+      const min = parsePaceInput(paceMin);
+      if (min !== null) result = result.filter(r => r.pace_sec_per_km >= min);
+    }
+    if (paceMax !== '') {
+      const max = parsePaceInput(paceMax);
+      if (max !== null) result = result.filter(r => r.pace_sec_per_km <= max);
+    }
+    if (timeMin !== '') {
+      const min = parseTimeInput(timeMin);
+      if (min !== null) result = result.filter(r => r.moving_time_sec >= min);
+    }
+    if (timeMax !== '') {
+      const max = parseTimeInput(timeMax);
+      if (max !== null) result = result.filter(r => r.moving_time_sec <= max);
+    }
+    if (elevMin !== '') {
+      const min = parseFloat(elevMin);
+      if (!isNaN(min)) result = result.filter(r => r.elevation_gain_m >= min);
+    }
+    if (elevMax !== '') {
+      const max = parseFloat(elevMax);
+      if (!isNaN(max)) result = result.filter(r => r.elevation_gain_m <= max);
+    }
+    if (hrMin !== '') {
+      const min = parseFloat(hrMin);
+      if (!isNaN(min)) result = result.filter(r => r.average_hr != null && r.average_hr >= min);
+    }
+    if (hrMax !== '') {
+      const max = parseFloat(hrMax);
+      if (!isNaN(max)) result = result.filter(r => r.average_hr != null && r.average_hr <= max);
+    }
+
+    result.sort((a, b) => {
       let aVal = a[sortField];
       let bVal = b[sortField];
       if (sortField === 'date') {
@@ -90,8 +193,9 @@ export default function DeepDiveTab({ runs }) {
       const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
       return sortDir === 'asc' ? cmp : -cmp;
     });
-    return sorted;
-  }, [runs, sortField, sortDir]);
+
+    return result;
+  }, [runs, sortField, sortDir, nameFilter, dateFrom, dateTo, distMin, distMax, paceMin, paceMax, timeMin, timeMax, elevMin, elevMax, hrMin, hrMax]);
 
   useEffect(() => {
     if (!selectedRunId) {
@@ -145,7 +249,34 @@ export default function DeepDiveTab({ runs }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        <div className="lg:col-span-2 card p-4" style={{ maxHeight: 560 }}>
+        <div className="lg:col-span-2 card p-4 flex flex-col" style={{ maxHeight: 640 }}>
+          {/* Search + Filter toggle */}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-bg-card border border-border-primary/50">
+              <Search size={14} className="text-text-muted flex-shrink-0" />
+              <input
+                type="text"
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                placeholder="Search runs by name..."
+                className="w-full bg-transparent text-xs text-text-primary placeholder-text-muted outline-none border-none"
+              />
+              {nameFilter && (
+                <button onClick={() => setNameFilter('')} className="text-text-muted hover:text-text-primary p-0.5">
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+            <button
+              onClick={() => setShowFilters(prev => !prev)}
+              className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] font-medium transition-all border border-border-primary/50 ${showFilters ? 'bg-strava-orange/15 text-strava-orange' : 'bg-bg-card text-text-muted hover:text-text-primary'}`}
+            >
+              <SlidersHorizontal size={12} />
+              Filters
+            </button>
+          </div>
+
+          {/* Sort pills */}
           <div className="flex flex-wrap items-center gap-1 px-3 py-2 rounded-lg bg-bg-card border border-border-primary/50 mb-3">
             <span className="text-[10px] font-medium text-text-muted mr-0.5">Sort:</span>
             {SORT_OPTIONS.map(({ key, label }) => {
@@ -161,8 +292,59 @@ export default function DeepDiveTab({ runs }) {
               );
             })}
           </div>
-          <div className="space-y-1 overflow-y-auto" style={{ maxHeight: 470 }}>
-              {sortedRuns.slice(0, 200).map((run) => (
+
+          {/* Filter panel */}
+          {showFilters && (
+            <div className="mb-3 p-3 rounded-lg bg-bg-card border border-border-primary/50 space-y-2">
+              <div className="grid grid-cols-[auto_1fr_auto_1fr] gap-x-2 gap-y-2 items-center">
+                <span className="text-[10px] font-medium text-text-muted">Date</span>
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50" />
+                <span className="text-[10px] text-text-muted text-center">to</span>
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50" />
+
+                <span className="text-[10px] font-medium text-text-muted">Dist</span>
+                <input type="number" step="0.1" placeholder="min km" value={distMin} onChange={e => setDistMin(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50 placeholder-text-muted/50" />
+                <span className="text-[10px] text-text-muted text-center">to</span>
+                <input type="number" step="0.1" placeholder="max km" value={distMax} onChange={e => setDistMax(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50 placeholder-text-muted/50" />
+
+                <span className="text-[10px] font-medium text-text-muted">Pace</span>
+                <input type="text" placeholder="min mm:ss" value={paceMin} onChange={e => setPaceMin(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50 placeholder-text-muted/50" />
+                <span className="text-[10px] text-text-muted text-center">to</span>
+                <input type="text" placeholder="max mm:ss" value={paceMax} onChange={e => setPaceMax(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50 placeholder-text-muted/50" />
+
+                <span className="text-[10px] font-medium text-text-muted">Time</span>
+                <input type="text" placeholder="min h:mm:ss" value={timeMin} onChange={e => setTimeMin(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50 placeholder-text-muted/50" />
+                <span className="text-[10px] text-text-muted text-center">to</span>
+                <input type="text" placeholder="max h:mm:ss" value={timeMax} onChange={e => setTimeMax(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50 placeholder-text-muted/50" />
+
+                <span className="text-[10px] font-medium text-text-muted">Elev</span>
+                <input type="number" placeholder="min m" value={elevMin} onChange={e => setElevMin(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50 placeholder-text-muted/50" />
+                <span className="text-[10px] text-text-muted text-center">to</span>
+                <input type="number" placeholder="max m" value={elevMax} onChange={e => setElevMax(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50 placeholder-text-muted/50" />
+
+                <span className="text-[10px] font-medium text-text-muted">HR</span>
+                <input type="number" placeholder="min bpm" value={hrMin} onChange={e => setHrMin(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50 placeholder-text-muted/50" />
+                <span className="text-[10px] text-text-muted text-center">to</span>
+                <input type="number" placeholder="max bpm" value={hrMax} onChange={e => setHrMax(e.target.value)} className="bg-bg-card text-[11px] text-text-primary px-2 py-1 rounded border border-border-primary/50 placeholder-text-muted/50" />
+              </div>
+              {hasActiveFilters && (
+                <button onClick={clearFilters} className="text-[10px] text-text-muted hover:text-strava-orange transition-all mt-1">
+                  Clear all filters
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Run list */}
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-1">
+            {sortedRuns.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Footprints size={24} className="text-text-muted mb-2" style={{ opacity: 0.3 }} />
+                <p className="text-xs text-text-muted">No runs match your filters</p>
+                <button onClick={clearFilters} className="text-[11px] text-strava-orange hover:underline mt-2">Clear filters</button>
+              </div>
+            ) : (
+              sortedRuns.slice(0, 200).map((run) => (
                 <button
                   key={run.id}
                   onClick={() => setSelectedRunId(run.id)}
@@ -181,7 +363,8 @@ export default function DeepDiveTab({ runs }) {
                     <ChevronRight size={12} className={`${selectedRunId === run.id ? 'text-strava-orange' : 'text-text-muted'}`} />
                   </div>
                 </button>
-              ))}
+              ))
+            )}
           </div>
         </div>
 
