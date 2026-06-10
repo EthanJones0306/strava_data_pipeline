@@ -11,12 +11,12 @@ def get_strava_athlete_profile(access_token):
     }
     
     print("Fetching athlete profile...")
-    response = requests.get(url, headers=headers)
-    
-    if response.status_code == 200:
-        return response.json() 
-    else:
-        print(f"Error fetching profile: {response.status_code}")
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching profile: {e}")
         return None
 
 def get_recent_activities(access_token, num_activities=5):
@@ -33,12 +33,12 @@ def get_recent_activities(access_token, num_activities=5):
     }
     
     print(f"Fetching your {num_activities} most recent activities...")
-    response = requests.get(url, headers=headers, params=params)
-    
-    if response.status_code == 200:
-        return response.json() 
-    else:
-        print(f"Error fetching activities: {response.status_code}")
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching activities: {e}")
         return None
     
 def get_recent_runs(access_token, num_runs_wanted=5):
@@ -56,21 +56,19 @@ def get_recent_runs(access_token, num_runs_wanted=5):
     }
 
     print(f"Fetching data to find your {num_runs_wanted} most recent runs...")
-    response = requests.get(url, headers=headers, params=params)
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
 
-    if response.status_code == 200:
         runs = []
         for activity in response.json():
             if activity.get('sport_type') == 'Run':
                 runs.append(activity)
-                
-                # Stop looking once list satisfies the number of runs wanted 
                 if len(runs) == num_runs_wanted:
                     break
-                    
         return runs
-    else:
-        print(f"Error fetching runs: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching runs: {e}")
         return None
     
 def get_activity_details(access_token, activity_id):
@@ -84,12 +82,12 @@ def get_activity_details(access_token, activity_id):
     }
     
     print(f"   ↳ Fetching Level 2 details for activity ID: {activity_id}...")
-    response = requests.get(url, headers=headers)
-    
-    if response.status_code == 200:
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
         return response.json()
-    else:
-        print(f"   ↳ Error fetching details: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"   ↳ Error fetching details: {e}")
         return None
     
 def fetch_latest_run_details(access_token):
