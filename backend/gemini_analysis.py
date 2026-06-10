@@ -1,5 +1,4 @@
-import time
-import re
+from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception
 from google import genai
 from google.genai import errors as genai_errors
 
@@ -32,15 +31,19 @@ def _format_run_context(run, index):
     )
 
 
-def _extract_retry_delay(error):
-    raw = str(error)
-    match = re.search(r"retry in (\d+(?:\.\d+)?)s", raw, re.IGNORECASE)
-    if match:
-        return float(match.group(1))
-    match = re.search(r"retryDelay.*?(\d+)s", raw)
-    if match:
-        return float(match.group(1))
-    return 30
+def _is_rate_limit(exc):
+    return isinstance(exc, genai_errors.ClientError) and exc.code == 429
+
+
+def _call_with_retry(client, model, prompt):
+    @retry(
+        wait=wait_exponential(multiplier=2, min=2, max=60),
+        stop=stop_after_attempt(5),
+        retry=retry_if_exception(_is_rate_limit),
+    )
+    def invoke():
+        return client.models.generate_content(model=model, contents=prompt)
+    return invoke()
 
 
 def _build_prompt(latest, context_lines):
@@ -101,32 +104,23 @@ def analyze_run(latest_comprehensive, recent_runs_raw, api_key, preferred_model=
     prompt = _build_prompt(latest_comprehensive, context_lines)
 
     last_error = None
-    for attempt, model in enumerate(_models_to_try(preferred_model)):
+    for model in _models_to_try(preferred_model):
         try:
             print(f"Sending run to Gemini for analysis (model: {model})...")
-            response = client.models.generate_content(model=model, contents=prompt)
+            response = _call_with_retry(client, model, prompt)
             print("Analysis received from Gemini.")
             return {"text": response.text, "model": model}
 
         except genai_errors.ClientError as e:
             last_error = e
             if e.code == 429:
-                delay = _extract_retry_delay(e)
-                if attempt < len(_models_to_try(preferred_model)) - 1:
-                    print(f"Model {model} hit rate limit (retry in {delay:.0f}s). Trying next model...")
-                    time.sleep(min(delay, 5))
-                else:
-                    print(f"All models hit rate limits. Last retry was {delay:.0f}s.")
+                print(f"Model {model} exhausted rate limit retries. Trying next model...")
             else:
-                print(f"Model {model} failed: {e}")
-                if attempt < len(_models_to_try(preferred_model)) - 1:
-                    print("Trying next model...")
+                print(f"Model {model} failed: {e}. Trying next model...")
 
         except Exception as e:
             last_error = e
-            print(f"Model {model} failed with unexpected error: {e}")
-            if attempt < len(_models_to_try(preferred_model)) - 1:
-                print("Trying next model...")
+            print(f"Model {model} failed with unexpected error: {e}. Trying next model...")
 
     print(f"Coaching analysis failed after {len(_models_to_try(preferred_model))} models. Last error: {last_error}")
     return None
