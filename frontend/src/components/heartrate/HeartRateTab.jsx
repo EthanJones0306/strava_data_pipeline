@@ -4,6 +4,7 @@ import { Heart, Activity, BarChart3 } from 'lucide-react';
 
 const HR_ZONE_COLORS = ['#3B82F6', '#22C55E', '#EAB308', '#F97316', '#EF4444'];
 const HR_ZONE_LABELS = ['Zone 1 (Easy)', 'Zone 2 (Moderate)', 'Zone 3 (Aerobic)', 'Zone 4 (Threshold)', 'Zone 5 (Max)'];
+const HR_ZONE_RANGES = ['< 120 bpm', '120–139 bpm', '140–154 bpm', '155–169 bpm', '≥ 170 bpm'];
 
 const DotTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
@@ -63,15 +64,19 @@ export default function HeartRateTab({ runs, stats }) {
     }))
     .sort((a, b) => a.pace - b.pace);
 
-  const zoneDist = {};
-  hrVsPaceData.forEach((d) => { zoneDist[d.zone] = (zoneDist[d.zone] || 0) + 1; });
-  const zoneData = Object.entries(zoneDist).map(([zone, count]) => ({
-    zone: parseInt(zone),
-    label: HR_ZONE_LABELS[parseInt(zone) - 1] || `Zone ${zone}`,
-    count,
-    color: HR_ZONE_COLORS[parseInt(zone) - 1],
-    pct: Math.round((count / hrVsPaceData.length) * 100),
-  }));
+  const hrZoneData = [1, 2, 3, 4, 5].map((z) => {
+    const count = stats.hrZoneCount?.[z] ?? 0;
+    return {
+      zone: z,
+      label: HR_ZONE_LABELS[z - 1],
+      range: HR_ZONE_RANGES[z - 1],
+      count,
+      color: HR_ZONE_COLORS[z - 1],
+      pct: 0,
+    };
+  });
+  const hrZoneTotal = hrZoneData.reduce((s, z) => s + z.count, 0);
+  hrZoneData.forEach((z) => { z.pct = hrZoneTotal > 0 ? Math.round((z.count / hrZoneTotal) * 100) : 0; });
 
   const maxHRever = Math.max(...runs.filter((r) => r.max_hr).map((r) => r.max_hr));
   const avgHR = stats.avgHR;
@@ -241,17 +246,21 @@ export default function HeartRateTab({ runs, stats }) {
         <div className="card p-5">
           <div className="mb-4">
             <h3 className="text-sm font-bold text-text-primary m-0">HR Zone Distribution</h3>
-            <p className="text-xs text-text-muted mt-0.5">Run count per zone</p>
+            <p className="text-xs text-text-muted mt-0.5">How your kilometres fall across HR zones</p>
           </div>
           <div className="space-y-4">
-            {zoneData.map((z) => (
+            {hrZoneData.map((z) => (
               <div key={z.zone}>
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2.5">
                     <span className="w-3.5 h-3.5 rounded-full" style={{ background: z.color, boxShadow: `0 0 8px ${z.color}50` }} />
                     <span className="text-xs font-semibold text-text-secondary">{z.label}</span>
+                    <span className="text-xs text-text-muted font-mono">({z.range})</span>
                   </div>
-                  <span className="text-xs font-mono text-text-muted">{z.pct}% ({z.count})</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-text-muted">{z.count} km</span>
+                    <span className="text-xs font-mono text-text-secondary font-semibold">{z.pct}%</span>
+                  </div>
                 </div>
                 <div className="h-3 rounded-full bg-bg-card overflow-hidden" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3)' }}>
                   <div
