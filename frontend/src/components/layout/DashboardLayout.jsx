@@ -72,7 +72,7 @@ export default function DashboardLayout() {
         className="flex-1 flex flex-col"
         style={{ marginLeft: sidebarCollapsed ? 64 : 240, transition: 'margin-left 250ms ease' }}
       >
-        <Header stats={stats} collapsed={sidebarCollapsed} />
+        <Header stats={stats} collapsed={sidebarCollapsed} runs={runs} />
         <main className="flex-1 p-6 overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center h-64">
@@ -82,7 +82,7 @@ export default function DashboardLayout() {
               </div>
             </div>
           ) : (
-            <div className="animate-fade-in" key={activeTab}>
+            <div className="animate-tab-enter" key={activeTab}>
               {renderTab()}
             </div>
           )}

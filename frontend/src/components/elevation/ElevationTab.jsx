@@ -117,7 +117,7 @@ export default function ElevationTab({ runs, stats }) {
                 <XAxis dataKey="date" tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(59,130,246,0.05)' }} />
-                <Bar dataKey="elevation" fill="url(#elevGradient)" radius={[6, 6, 0, 0]} name="Elevation" maxBarSize={28} />
+                <Bar dataKey="elevation" fill="url(#elevGradient)" radius={[6, 6, 0, 0]} name="Elevation" maxBarSize={28} animationDuration={600} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -135,7 +135,7 @@ export default function ElevationTab({ runs, stats }) {
                 <XAxis dataKey="date" tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(234,179,8,0.05)' }} />
-                <Bar dataKey="watts" fill="url(#powerGradient)" radius={[6, 6, 0, 0]} name="Watts" maxBarSize={28} />
+                <Bar dataKey="watts" fill="url(#powerGradient)" radius={[6, 6, 0, 0]} name="Watts" maxBarSize={28} animationDuration={600} />
               </BarChart>
             </ResponsiveContainer>
           </div>

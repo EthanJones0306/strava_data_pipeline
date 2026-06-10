@@ -1,35 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 
-function AnimatedValue({ value, suffix = '' }) {
-  const [display, setDisplay] = useState(0);
+function AnimatedValue({ value }) {
+  const [display, setDisplay] = useState(null);
   const ref = useRef(null);
-  const numeric = parseFloat(String(value).replace(/[^0-9.]/g, '')) || 0;
-  const isNumeric = !isNaN(parseFloat(value)) && String(value) === String(numeric);
+  const match = String(value).match(/^([\d.]+)(.*)$/);
+  const numeric = match ? parseFloat(match[1]) : NaN;
+  const suffix = match ? match[2] : '';
+  const isAnimatable = !isNaN(numeric) && match[1] === String(numeric);
 
   useEffect(() => {
-    if (!isNumeric) { setDisplay(value); return; }
+    if (!isAnimatable) { setDisplay(value); return; }
     const duration = 800;
     const steps = 30;
     const increment = numeric / steps;
     let current = 0;
     const timer = setInterval(() => {
       current += increment;
-      if (current >= numeric) { setDisplay(numeric); clearInterval(timer); return; }
-      setDisplay(Math.round(current * 10) / 10);
+      if (current >= numeric) { setDisplay(numeric + suffix); clearInterval(timer); return; }
+      setDisplay(Math.round(current * 10) / 10 + suffix);
     }, duration / steps);
     return () => clearInterval(timer);
-  }, [value, numeric, isNumeric]);
+  }, [value, numeric, suffix, isAnimatable]);
 
-  const colorMap = {
-    orange: { bg: 'color-mix(in srgb, var(--color-strava-orange) 12%, transparent)', icon: 'var(--color-strava-orange)', glow: '0 0 20px color-mix(in srgb, var(--color-strava-orange) 15%, transparent)' },
-    green: { bg: 'rgba(34,197,94,0.12)', icon: '#22C55E', glow: '0 0 20px rgba(34,197,94,0.15)' },
-    blue: { bg: 'rgba(59,130,246,0.12)', icon: '#3B82F6', glow: '0 0 20px rgba(59,130,246,0.15)' },
-    purple: { bg: 'rgba(168,85,247,0.12)', icon: '#A855F7', glow: '0 0 20px rgba(168,85,247,0.15)' },
-    yellow: { bg: 'rgba(234,179,8,0.12)', icon: '#EAB308', glow: '0 0 20px rgba(234,179,8,0.15)' },
-  };
-  const c = colorMap[color] || colorMap.orange;
-
-  return suffix;
+  return <>{display ?? value}</>;
 }
 
 function MiniSparkline({ data, color }) {
@@ -41,14 +34,8 @@ function MiniSparkline({ data, color }) {
   const h = 32;
   const points = data.map((v, i) => `${i * 10 + 5},${h - ((v - min) / range) * (h - 4) - 2}`).join(' ');
   return (
-    <div className="mt-2.5" style={{ height: h }}>
+    <div className="mt-3" style={{ height: h }}>
       <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="opacity-60">
-        <defs>
-          <linearGradient id={`spark-${data.join('')}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.2} />
-            <stop offset="100%" stopColor={color} stopOpacity={0} />
-          </linearGradient>
-        </defs>
         <polyline
           points={points}
           fill="none"
@@ -62,7 +49,7 @@ function MiniSparkline({ data, color }) {
   );
 }
 
-export default function StatCard({ icon: Icon, label, value, subvalue, color = 'orange', trend, decimals = 1, sparklineData }) {
+export default function StatCard({ icon: Icon, label, value, subvalue, color = 'orange', trend, sparklineData }) {
   const colorMap = {
     orange: { bg: 'color-mix(in srgb, var(--color-strava-orange) 12%, transparent)', icon: 'var(--color-strava-orange)', border: 'color-mix(in srgb, var(--color-strava-orange) 20%, transparent)', glow: '0 0 20px color-mix(in srgb, var(--color-strava-orange) 15%, transparent)' },
     green: { bg: 'rgba(34,197,94,0.12)', icon: '#22C55E', border: 'rgba(34,197,94,0.2)', glow: '0 0 20px rgba(34,197,94,0.15)' },
@@ -75,7 +62,7 @@ export default function StatCard({ icon: Icon, label, value, subvalue, color = '
 
   return (
     <div className="stat-card group" style={{ '--stat-glow': c.glow }}>
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-3">
         <div
           className="w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110"
           style={{ background: c.bg, color: c.icon, boxShadow: c.glow }}
@@ -90,10 +77,12 @@ export default function StatCard({ icon: Icon, label, value, subvalue, color = '
           </span>
         )}
       </div>
-      <p className="text-2xl font-bold text-text-primary mb-1 tracking-tight font-mono">{value}</p>
+      <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest mb-1">{label}</p>
+      <p className="text-[28px] font-bold text-text-primary leading-none tracking-tight font-mono">
+        <AnimatedValue value={value} />
+      </p>
+      {subvalue && <p className="text-xs text-text-muted/60 mt-2">{subvalue}</p>}
       {sparklineData && <MiniSparkline data={sparklineData} color={c.icon} />}
-      <p className="text-sm text-text-muted font-medium">{label}</p>
-      {subvalue && <p className="text-xs text-text-muted/60 mt-1.5">{subvalue}</p>}
     </div>
   );
 }

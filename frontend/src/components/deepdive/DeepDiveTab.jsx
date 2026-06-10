@@ -120,25 +120,26 @@ export default function DeepDiveTab({ runs, stats }) {
             <p className="text-xs text-text-muted truncate">Click any run to explore</p>
           </div>
           <div className="space-y-1 overflow-y-auto" style={{ maxHeight: 470 }}>
-            {filteredRuns.slice(0, 200).map((run) => (
-              <button
-                key={run.id}
-                onClick={() => setSelectedRunId(run.id)}
-                className={`w-full flex items-center justify-between py-2 px-3 rounded-lg transition-all duration-200 text-left ${selectedRunId === run.id ? 'bg-strava-orange/10 border border-strava-orange/30' : 'hover:bg-bg-card border border-transparent'}`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <Footprints size={14} className={`flex-shrink-0 ${selectedRunId === run.id ? 'text-strava-orange' : 'text-text-muted'}`} />
-                  <div className="min-w-0">
-                    <p className={`text-xs font-semibold truncate ${selectedRunId === run.id ? 'text-strava-orange' : 'text-text-primary'}`}>{run.name}</p>
-                    <p className="text-[10px] text-text-muted font-mono mt-0.5">{format(run.date, 'MMM dd, yyyy')}</p>
+              {filteredRuns.slice(0, 200).map((run) => (
+                <button
+                  key={run.id}
+                  onClick={() => setSelectedRunId(run.id)}
+                  className={`w-full flex items-center justify-between py-2 px-3 rounded-lg transition-all duration-200 text-left group ${selectedRunId === run.id ? 'bg-strava-orange/10 border border-strava-orange/30' : 'hover:bg-bg-card border border-transparent hover:border-l-strava-orange hover:border-l-2'}`}
+                  style={{ borderLeftWidth: selectedRunId === run.id ? 2 : 0 }}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Footprints size={14} className={`flex-shrink-0 ${selectedRunId === run.id ? 'text-strava-orange' : 'text-text-muted'}`} />
+                    <div className="min-w-0">
+                      <p className={`text-xs font-semibold truncate ${selectedRunId === run.id ? 'text-strava-orange' : 'text-white'}`}>{run.name}</p>
+                      <p className="text-[10px] text-text-muted font-mono mt-0.5">{format(run.date, 'MMM dd, yyyy')}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-xs font-mono text-text-muted">{Math.round(run.distance_km * 10) / 10}km</span>
-                  <ChevronRight size={12} className={`${selectedRunId === run.id ? 'text-strava-orange' : 'text-text-muted'}`} />
-                </div>
-              </button>
-            ))}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-xs font-mono text-text-muted">{Math.round(run.distance_km * 10) / 10}km</span>
+                    <ChevronRight size={12} className={`${selectedRunId === run.id ? 'text-strava-orange' : 'text-text-muted'}`} />
+                  </div>
+                </button>
+              ))}
           </div>
         </div>
 

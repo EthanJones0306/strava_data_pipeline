@@ -177,7 +177,7 @@ export default function HeartRateTab({ runs, stats }) {
                 label={{ value: 'Heart Rate (bpm)', angle: -90, position: 'insideLeft', offset: 5, fill: '#71717A', fontSize: 11, style: { fontWeight: 500 } }}
               />
               <Tooltip content={<DotTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-              <Scatter data={hrVsPaceData} shape={(props) => {
+              <Scatter data={hrVsPaceData} animationDuration={600} shape={(props) => {
                 const { cx, cy, fill } = props;
                 if (cx === undefined || cy === undefined) return null;
                 return (
@@ -231,8 +231,8 @@ export default function HeartRateTab({ runs, stats }) {
                   iconType="circle"
                   formatter={(value) => <span style={{ color: value === 'Avg Pace' ? 'var(--color-strava-orange)' : '#EF4444' }}>{value}</span>}
                 />
-                <Line yAxisId="pace" type="monotone" dataKey="avgPace" stroke="var(--color-strava-orange)" strokeWidth={3} dot={{ r: 4, fill: 'var(--color-strava-orange)', strokeWidth: 2, stroke: '#18181B' }} activeDot={{ r: 6 }} name="Avg Pace" />
-                <Line yAxisId="hr" type="monotone" dataKey="avgHR" stroke="#EF4444" strokeWidth={2.5} dot={{ r: 4, fill: '#EF4444', strokeWidth: 2, stroke: '#18181B' }} activeDot={{ r: 6 }} name="Avg HR" />
+                <Line yAxisId="pace" type="monotone" dataKey="avgPace" stroke="var(--color-strava-orange)" strokeWidth={3} dot={{ r: 4, fill: 'var(--color-strava-orange)', strokeWidth: 2, stroke: '#18181B' }} activeDot={{ r: 6 }} name="Avg Pace" animationDuration={600} />
+                <Line yAxisId="hr" type="monotone" dataKey="avgHR" stroke="#EF4444" strokeWidth={2.5} dot={{ r: 4, fill: '#EF4444', strokeWidth: 2, stroke: '#18181B' }} activeDot={{ r: 6 }} name="Avg HR" animationDuration={600} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>

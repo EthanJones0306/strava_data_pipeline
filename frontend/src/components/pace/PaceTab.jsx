@@ -115,9 +115,9 @@ export default function PaceTab({ runs, stats }) {
               <YAxis reversed tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false}
                 tickFormatter={(v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, '0')}`} />
               <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="smooth" fill="url(#paceGradient)" stroke="none" />
-              <Line type="monotone" dataKey="pace" stroke="#3F3F46" strokeWidth={1.5} dot={false} name="Pace" />
-              <Line type="monotone" dataKey="smooth" stroke="var(--color-strava-orange)" strokeWidth={3} dot={false} name="Smooth" />
+              <Area type="monotone" dataKey="smooth" fill="url(#paceGradient)" stroke="none" animationDuration={600} />
+              <Line type="monotone" dataKey="pace" stroke="#3F3F46" strokeWidth={1.5} dot={false} name="Pace" animationDuration={600} />
+              <Line type="monotone" dataKey="smooth" stroke="var(--color-strava-orange)" strokeWidth={3} dot={false} name="Smooth" animationDuration={600} />
             </LineChart>
           </ResponsiveContainer>
         </div>

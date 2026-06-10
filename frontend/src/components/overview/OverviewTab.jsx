@@ -37,11 +37,11 @@ function RecentRunsTable({ runs }) {
           {runs.slice(0, 8).map((run) => (
             <tr key={run.id} className="cursor-pointer group">
               <td className="text-text-muted text-xs whitespace-nowrap font-mono">{format(run.date, 'MMM dd')}</td>
-              <td className="font-semibold text-text-primary group-hover:text-strava-orange transition-colors">{run.name}</td>
-              <td className="font-mono">{run.distance_km.toFixed(2)} <span className="text-text-muted text-xs">km</span></td>
-              <td className="text-text-secondary font-mono text-sm">{run.moving_time_display || `${Math.floor(run.moving_time_sec / 60)}m ${run.moving_time_sec % 60}s`}</td>
-              <td className="font-mono">{run.pace_display || `${Math.floor(run.pace_sec_per_km / 60)}:${String(Math.round(run.pace_sec_per_km % 60)).padStart(2, '0')} /km`}</td>
-              <td className="text-text-secondary font-mono">{run.elevation_gain_m.toFixed(0)}<span className="text-text-muted text-xs">m</span></td>
+              <td className="text-white font-semibold group-hover:text-strava-orange transition-colors">{run.name}</td>
+              <td className="text-text-muted font-mono text-xs">{run.distance_km.toFixed(2)} <span className="text-text-muted/60">km</span></td>
+              <td className="text-text-muted font-mono text-xs">{run.moving_time_display || `${Math.floor(run.moving_time_sec / 60)}m ${run.moving_time_sec % 60}s`}</td>
+              <td className="text-text-muted font-mono text-xs">{run.pace_display || `${Math.floor(run.pace_sec_per_km / 60)}:${String(Math.round(run.pace_sec_per_km % 60)).padStart(2, '0')} /km`}</td>
+              <td className="text-text-muted font-mono text-xs">{run.elevation_gain_m.toFixed(0)}<span className="text-text-muted/60">m</span></td>
             </tr>
           ))}
         </tbody>
@@ -133,7 +133,7 @@ export default function OverviewTab({ runs, stats }) {
               <XAxis dataKey="label" tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip content={<BarTooltip />} cursor={{ fill: 'color-mix(in srgb, var(--color-strava-orange) 5%, transparent)' }} />
-              <Bar dataKey="distance" fill="url(#barGradient)" radius={[6, 6, 0, 0]} name="Distance" maxBarSize={barView === 'year' ? 48 : 32} />
+              <Bar dataKey="distance" fill="url(#barGradient)" radius={[6, 6, 0, 0]} name="Distance" maxBarSize={barView === 'year' ? 48 : 32} animationDuration={600} />
             </BarChart>
           </ResponsiveContainer>
         </div>
