@@ -1,0 +1,53 @@
+from typing import Optional, List
+from sqlmodel import SQLModel, Field, Relationship
+
+
+class Run(SQLModel, table=True):
+    __tablename__ = "runs"
+
+    id: int = Field(default=None, primary_key=True)
+    name: str
+    date: str
+    distance_km: float
+    moving_time_sec: int
+    pace_sec_per_km: int
+    elevation_gain_m: float
+    average_hr: Optional[float] = None
+    max_hr: Optional[float] = None
+    average_watts: float = 0
+    has_power: bool = False
+
+    splits: List["Split"] = Relationship(
+        back_populates="run",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+    best_efforts: List["BestEffort"] = Relationship(
+        back_populates="run",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+
+
+class Split(SQLModel, table=True):
+    __tablename__ = "splits"
+
+    id: int = Field(default=None, primary_key=True)
+    run_id: int = Field(foreign_key="runs.id")
+    km: int
+    pace_sec: int
+    gap_sec: Optional[int] = None
+    avg_hr: Optional[int] = None
+    elevation_diff_m: float = 0
+
+    run: Run = Relationship(back_populates="splits")
+
+
+class BestEffort(SQLModel, table=True):
+    __tablename__ = "best_efforts"
+
+    id: int = Field(default=None, primary_key=True)
+    run_id: int = Field(foreign_key="runs.id")
+    label: str
+    time_sec: int
+    distance_m: int
+
+    run: Run = Relationship(back_populates="best_efforts")

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from database import init_db
 from run_store import get_all_runs, get_run, seed_from_csv, sync_from_strava, get_sync_status
 from analysis_store import list_analyses, get_analysis, save_analysis
 from analysis_service import get_or_generate_analysis, generate_analysis_background
@@ -17,6 +18,7 @@ _pending_analyses = set()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    init_db()
     seed_from_csv()
     try:
         sync_from_strava()
