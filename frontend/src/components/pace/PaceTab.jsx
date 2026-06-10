@@ -47,9 +47,18 @@ export default function PaceTab({ runs, stats }) {
   }));
 
   const zoneColors = ['#22C55E', '#84CC16', '#EAB308', '#F97316', '#EF4444', '#A855F7'];
+  const zonePaceRanges = {
+    1: '< 4:00',
+    2: '4:00–4:30',
+    3: '4:30–5:00',
+    4: '5:00–5:30',
+    5: '5:30–6:00',
+    6: '> 6:00',
+  };
   const zoneData = Object.entries(stats.paceZoneCount || {})
     .filter(([, count]) => count > 0)
-    .map(([zone, count]) => ({ zone: `Zone ${zone}`, count, color: zoneColors[zone - 1] }));
+    .map(([zone, count]) => ({ zone: `Zone ${zone}`, paceRange: zonePaceRanges[zone] || '', count, color: zoneColors[zone - 1] }));
+  const totalSplits = zoneData.reduce((s, z) => s + z.count, 0);
   const maxZoneCount = Math.max(...zoneData.map((x) => x.count), 1);
 
   return (
@@ -157,12 +166,16 @@ export default function PaceTab({ runs, stats }) {
           <div className="space-y-3.5">
             {zoneData.map((z) => (
               <div key={z.zone}>
-                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
                     <span className="w-3 h-3 rounded-full" style={{ background: z.color }} />
                     <span className="text-xs font-semibold text-text-secondary">{z.zone}</span>
+                    <span className="text-xs text-text-muted font-mono">({z.paceRange} /km)</span>
                   </div>
-                  <span className="text-xs font-mono text-text-muted">{z.count} km</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-text-muted">{z.count} km</span>
+                    <span className="text-xs font-mono text-text-secondary font-semibold">{totalSplits > 0 ? Math.round((z.count / totalSplits) * 100) : 0}%</span>
+                  </div>
                 </div>
                 <div className="h-2.5 rounded-full bg-bg-card overflow-hidden" style={{ boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.3)' }}>
                   <div
