@@ -57,8 +57,8 @@ export default function PaceTab({ runs, stats }) {
       <svg height="0" width="0" style={{ position: 'absolute' }}>
         <defs>
           <linearGradient id="paceGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FC4C02" stopOpacity={0.8} />
-            <stop offset="100%" stopColor="#FC4C02" stopOpacity={0} />
+            <stop offset="0%" style={{ stopColor: 'var(--color-strava-orange)' }} stopOpacity={0.8} />
+            <stop offset="100%" style={{ stopColor: 'var(--color-strava-orange)' }} stopOpacity={0} />
           </linearGradient>
         </defs>
       </svg>
@@ -73,7 +73,7 @@ export default function PaceTab({ runs, stats }) {
           </div>
         </div>
         <div className="card p-5 flex items-center gap-5">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-strava-orange/20 to-strava-orange/5 flex items-center justify-center" style={{ boxShadow: '0 0 20px rgba(252,76,2,0.1)' }}>
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-strava-orange/20 to-strava-orange/5 flex items-center justify-center" style={{ boxShadow: '0 0 20px color-mix(in srgb, var(--color-strava-orange) 10%, transparent)' }}>
             <Award size={24} className="text-strava-orange" />
           </div>
           <div>
@@ -116,7 +116,7 @@ export default function PaceTab({ runs, stats }) {
                 tickFormatter={(v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, '0')}`} />
               <Tooltip content={<CustomTooltip />} />
               <Line type="monotone" dataKey="pace" stroke="#3F3F46" strokeWidth={1.5} dot={false} name="Pace" />
-              <Line type="monotone" dataKey="smooth" stroke="#FC4C02" strokeWidth={3} dot={false} name="Smooth" />
+              <Line type="monotone" dataKey="smooth" stroke="var(--color-strava-orange)" strokeWidth={3} dot={false} name="Smooth" />
             </LineChart>
           </ResponsiveContainer>
         </div>

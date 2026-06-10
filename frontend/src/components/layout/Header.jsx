@@ -1,5 +1,6 @@
 import { format } from 'date-fns';
 import { Zap, Activity } from 'lucide-react';
+import SettingsPanel from './SettingsPanel';
 
 export default function Header({ stats, collapsed }) {
   return (
@@ -34,6 +35,7 @@ export default function Header({ stats, collapsed }) {
             <span className="text-text-primary">{stats?.totalRuns || 0}</span> total runs
           </span>
         </div>
+        <SettingsPanel />
       </div>
     </header>
   );

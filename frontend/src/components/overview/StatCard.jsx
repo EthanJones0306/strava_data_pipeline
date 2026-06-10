@@ -21,7 +21,7 @@ function AnimatedValue({ value, suffix = '' }) {
   }, [value, numeric, isNumeric]);
 
   const colorMap = {
-    orange: { bg: 'rgba(252,76,2,0.12)', icon: '#FC4C02', glow: '0 0 20px rgba(252,76,2,0.15)' },
+    orange: { bg: 'color-mix(in srgb, var(--color-strava-orange) 12%, transparent)', icon: 'var(--color-strava-orange)', glow: '0 0 20px color-mix(in srgb, var(--color-strava-orange) 15%, transparent)' },
     green: { bg: 'rgba(34,197,94,0.12)', icon: '#22C55E', glow: '0 0 20px rgba(34,197,94,0.15)' },
     blue: { bg: 'rgba(59,130,246,0.12)', icon: '#3B82F6', glow: '0 0 20px rgba(59,130,246,0.15)' },
     purple: { bg: 'rgba(168,85,247,0.12)', icon: '#A855F7', glow: '0 0 20px rgba(168,85,247,0.15)' },
@@ -34,7 +34,7 @@ function AnimatedValue({ value, suffix = '' }) {
 
 export default function StatCard({ icon: Icon, label, value, subvalue, color = 'orange', trend, decimals = 1 }) {
   const colorMap = {
-    orange: { bg: 'rgba(252,76,2,0.12)', icon: '#FC4C02', border: 'rgba(252,76,2,0.2)', glow: '0 0 20px rgba(252,76,2,0.15)' },
+    orange: { bg: 'color-mix(in srgb, var(--color-strava-orange) 12%, transparent)', icon: 'var(--color-strava-orange)', border: 'color-mix(in srgb, var(--color-strava-orange) 20%, transparent)', glow: '0 0 20px color-mix(in srgb, var(--color-strava-orange) 15%, transparent)' },
     green: { bg: 'rgba(34,197,94,0.12)', icon: '#22C55E', border: 'rgba(34,197,94,0.2)', glow: '0 0 20px rgba(34,197,94,0.15)' },
     blue: { bg: 'rgba(59,130,246,0.12)', icon: '#3B82F6', border: 'rgba(59,130,246,0.2)', glow: '0 0 20px rgba(59,130,246,0.15)' },
     purple: { bg: 'rgba(168,85,247,0.12)', icon: '#A855F7', border: 'rgba(168,85,247,0.2)', glow: '0 0 20px rgba(168,85,247,0.15)' },

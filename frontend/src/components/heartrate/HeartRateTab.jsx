@@ -172,7 +172,7 @@ export default function HeartRateTab({ runs, stats }) {
                 ))}
               </Scatter>
               {trendLineData.length > 0 && (
-                <Line data={trendLineData} dataKey="hr" stroke="#FC4C02" strokeWidth={2.5} strokeDasharray="6 4" dot={false} activeDot={false} name="Trend" />
+                <Line data={trendLineData} dataKey="hr" stroke="var(--color-strava-orange)" strokeWidth={2.5} strokeDasharray="6 4" dot={false} activeDot={false} name="Trend" />
               )}
             </ScatterChart>
           </ResponsiveContainer>
@@ -194,11 +194,11 @@ export default function HeartRateTab({ runs, stats }) {
                   yAxisId="pace"
                   reversed
                   domain={['dataMin - 15', 'dataMax + 15']}
-                  tick={{ fill: '#FC4C02', fontSize: 10 }}
+                  tick={{ fill: 'var(--color-strava-orange)', fontSize: 10 }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(v) => `${Math.floor(v / 60)}:${String(Math.round(v % 60)).padStart(2, '0')}`}
-                  label={{ value: 'Pace', angle: -90, position: 'insideLeft', offset: 5, fill: '#FC4C02', fontSize: 10, style: { fontWeight: 500 } }}
+                  label={{ value: 'Pace', angle: -90, position: 'insideLeft', offset: 5, fill: 'var(--color-strava-orange)', fontSize: 10, style: { fontWeight: 500 } }}
                 />
                 <YAxis
                   yAxisId="hr"
@@ -213,9 +213,9 @@ export default function HeartRateTab({ runs, stats }) {
                 <Legend
                   wrapperStyle={{ fontSize: 11, fontWeight: 600 }}
                   iconType="circle"
-                  formatter={(value) => <span style={{ color: value === 'Avg Pace' ? '#FC4C02' : '#EF4444' }}>{value}</span>}
+                  formatter={(value) => <span style={{ color: value === 'Avg Pace' ? 'var(--color-strava-orange)' : '#EF4444' }}>{value}</span>}
                 />
-                <Line yAxisId="pace" type="monotone" dataKey="avgPace" stroke="#FC4C02" strokeWidth={3} dot={{ r: 4, fill: '#FC4C02', strokeWidth: 2, stroke: '#18181B' }} activeDot={{ r: 6 }} name="Avg Pace" />
+                <Line yAxisId="pace" type="monotone" dataKey="avgPace" stroke="var(--color-strava-orange)" strokeWidth={3} dot={{ r: 4, fill: 'var(--color-strava-orange)', strokeWidth: 2, stroke: '#18181B' }} activeDot={{ r: 6 }} name="Avg Pace" />
                 <Line yAxisId="hr" type="monotone" dataKey="avgHR" stroke="#EF4444" strokeWidth={2.5} dot={{ r: 4, fill: '#EF4444', strokeWidth: 2, stroke: '#18181B' }} activeDot={{ r: 6 }} name="Avg HR" />
               </ComposedChart>
             </ResponsiveContainer>

@@ -63,8 +63,8 @@ export default function OverviewTab({ runs, stats }) {
       <svg height="0" width="0" style={{ position: 'absolute' }}>
         <defs>
           <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FC4C02" stopOpacity={0.9} />
-            <stop offset="100%" stopColor="#FC4C02" stopOpacity={0.3} />
+            <stop offset="0%" style={{ stopColor: 'var(--color-strava-orange)' }} stopOpacity={0.9} />
+            <stop offset="100%" style={{ stopColor: 'var(--color-strava-orange)' }} stopOpacity={0.3} />
           </linearGradient>
         </defs>
       </svg>
@@ -91,7 +91,7 @@ export default function OverviewTab({ runs, stats }) {
               <p className="text-xs text-text-muted mt-0.5">Distance per week</p>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg-card border border-border-primary/50">
-              <span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#FC4C02' }} />
+              <span className="w-2.5 h-2.5 rounded-sm" style={{ background: 'var(--color-strava-orange)' }} />
               <span className="text-[11px] font-medium text-text-muted">km</span>
             </div>
           </div>
@@ -101,7 +101,7 @@ export default function OverviewTab({ runs, stats }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="#27272A" strokeOpacity={0.4} vertical={false} />
                 <XAxis dataKey="label" tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(252,76,2,0.05)' }} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'color-mix(in srgb, var(--color-strava-orange) 5%, transparent)' }} />
                 <Bar dataKey="distance" fill="url(#barGradient)" radius={[6, 6, 0, 0]} name="Distance" maxBarSize={32} />
               </BarChart>
             </ResponsiveContainer>
@@ -121,7 +121,7 @@ export default function OverviewTab({ runs, stats }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="card p-5 flex items-center gap-5 group cursor-default">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-strava-orange/20 to-strava-orange/5 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300" style={{ boxShadow: '0 0 20px rgba(252,76,2,0.1)' }}>
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-strava-orange/20 to-strava-orange/5 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300" style={{ boxShadow: '0 0 20px color-mix(in srgb, var(--color-strava-orange) 10%, transparent)' }}>
             <Zap size={26} className="text-strava-orange" />
           </div>
           <div>

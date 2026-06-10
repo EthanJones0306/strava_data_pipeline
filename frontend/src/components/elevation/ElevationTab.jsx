@@ -73,7 +73,7 @@ export default function ElevationTab({ runs, stats }) {
       </svg>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="card p-5 flex items-center gap-5">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-strava-orange/20 to-strava-orange/5 flex items-center justify-center" style={{ boxShadow: '0 0 20px rgba(252,76,2,0.1)' }}>
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-strava-orange/20 to-strava-orange/5 flex items-center justify-center" style={{ boxShadow: '0 0 20px color-mix(in srgb, var(--color-strava-orange) 10%, transparent)' }}>
             <Mountain size={24} className="text-strava-orange" />
           </div>
           <div>

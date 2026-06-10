@@ -2,8 +2,10 @@ import { useState, useMemo, useEffect } from 'react';
 import { parseCSV } from '../../data/parseCSV';
 import { computeStats } from '../../data/computeStats';
 import { fetchRuns } from '../../data/api';
+import { ThemeProvider } from '../../data/theme.jsx';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import SettingsPanel from './SettingsPanel';
 import OverviewTab from '../overview/OverviewTab';
 import PaceTab from '../pace/PaceTab';
 import HeartRateTab from '../heartrate/HeartRateTab';
@@ -56,6 +58,7 @@ export default function DashboardLayout() {
   };
 
   return (
+    <ThemeProvider>
     <div className="flex min-h-screen bg-bg-primary">
       <div className="fixed left-0 top-0 bottom-0 z-50">
         <Sidebar
@@ -121,5 +124,6 @@ export default function DashboardLayout() {
         </div>
       )}
     </div>
+    </ThemeProvider>
   );
 }
