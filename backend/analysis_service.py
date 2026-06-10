@@ -130,3 +130,40 @@ def get_or_generate_analysis(activity_id):
     set_preferred_model(result["model"])
 
     return get_analysis(activity_id)
+
+
+def generate_analysis_background(activity_id, pending_set):
+    try:
+        load_dotenv()
+        run = get_run(activity_id)
+        if not run:
+            print(f"Run {activity_id} not found in store")
+            return
+
+        gemini_api_key = os.getenv("GEMINI_API_KEY")
+        if not gemini_api_key:
+            print("GEMINI_API_KEY not set")
+            return
+
+        all_runs = get_all_runs().get("runs", [])
+        sorted_runs = sorted(all_runs, key=lambda r: r.get("date", ""), reverse=True)
+        other_recent = [r for r in sorted_runs if r.get("id") != activity_id][:5]
+        recent_context = [_run_to_context_format(run)] + [_run_to_context_format(r) for r in other_recent]
+
+        comprehensive = _run_to_comprehensive(run)
+
+        preferred_model = get_preferred_model()
+        result = analyze_run(
+            comprehensive, recent_context, gemini_api_key,
+            preferred_model=preferred_model,
+        )
+        if result:
+            save_analysis(activity_id, result["text"], comprehensive)
+            set_preferred_model(result["model"])
+            print(f"Background analysis complete for {activity_id}")
+        else:
+            print(f"Background analysis failed for {activity_id}")
+    except Exception as e:
+        print(f"[ERROR] Background analysis for {activity_id} crashed: {e}")
+    finally:
+        pending_set.discard(activity_id)
