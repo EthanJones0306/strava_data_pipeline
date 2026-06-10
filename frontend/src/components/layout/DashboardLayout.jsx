@@ -52,7 +52,7 @@ export default function DashboardLayout() {
       case 'pace': return <PaceTab runs={runs} stats={stats} />;
       case 'heartrate': return <HeartRateTab runs={runs} stats={stats} />;
       case 'elevation': return <ElevationTab runs={runs} stats={stats} />;
-      case 'deepdive': return <DeepDiveTab runs={runs} stats={stats} />;
+      case 'deepdive': return <DeepDiveTab runs={runs} />;
       default: return <OverviewTab runs={runs} stats={stats} />;
     }
   };

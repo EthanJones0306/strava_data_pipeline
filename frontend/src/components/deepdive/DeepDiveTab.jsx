@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { format } from 'date-fns';
-import { Search, Footprints, Clock, Route, Heart, Mountain, Flame, ChevronRight, Brain } from 'lucide-react';
+import { Footprints, Clock, Route, Heart, Mountain, Flame, ChevronRight, Brain } from 'lucide-react';
 import { fetchAnalysis } from '../../data/api';
 
 const CustomTooltip = ({ active, payload, label }) => {
@@ -50,12 +50,48 @@ const SplitRow = ({ split }) => {
   );
 };
 
-export default function DeepDiveTab({ runs, stats }) {
+export default function DeepDiveTab({ runs }) {
   const [selectedRunId, setSelectedRunId] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [sortField, setSortField] = useState('date');
+  const [sortDir, setSortDir] = useState('desc');
 
-  const sortedRuns = useMemo(() => [...runs].sort((a, b) => new Date(b.date) - new Date(a.date)), [runs]);
+  const SORT_OPTIONS = [
+    { key: 'date', label: 'Date', defaultDir: 'desc' },
+    { key: 'distance_km', label: 'Dist', defaultDir: 'desc' },
+    { key: 'pace_sec_per_km', label: 'Pace', defaultDir: 'asc' },
+    { key: 'moving_time_sec', label: 'Time', defaultDir: 'desc' },
+    { key: 'elevation_gain_m', label: 'Elev', defaultDir: 'desc' },
+    { key: 'average_hr', label: 'HR', defaultDir: 'desc' },
+  ];
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      const opt = SORT_OPTIONS.find(o => o.key === field);
+      setSortField(field);
+      setSortDir(opt ? opt.defaultDir : 'desc');
+    }
+  };
+
+  const sortedRuns = useMemo(() => {
+    const sorted = [...runs];
+    sorted.sort((a, b) => {
+      let aVal = a[sortField];
+      let bVal = b[sortField];
+      if (sortField === 'date') {
+        aVal = new Date(aVal).getTime();
+        bVal = new Date(bVal).getTime();
+      }
+      if (aVal == null) return 1;
+      if (bVal == null) return -1;
+      const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+    return sorted;
+  }, [runs, sortField, sortDir]);
 
   useEffect(() => {
     if (!selectedRunId) {
@@ -99,11 +135,6 @@ export default function DeepDiveTab({ runs, stats }) {
     };
   }, [selectedRunId, sortedRuns]);
 
-  const searchText = '';
-  const filteredRuns = searchText
-    ? sortedRuns.filter((r) => r.name.toLowerCase().includes(searchText.toLowerCase()))
-    : sortedRuns;
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -115,12 +146,23 @@ export default function DeepDiveTab({ runs, stats }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-2 card p-4" style={{ maxHeight: 560 }}>
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-lg bg-bg-card border border-border-primary/50 mb-3">
-            <Search size={14} className="text-text-muted flex-shrink-0" />
-            <p className="text-xs text-text-muted truncate">Click any run to explore</p>
+          <div className="flex flex-wrap items-center gap-1 px-3 py-2 rounded-lg bg-bg-card border border-border-primary/50 mb-3">
+            <span className="text-[10px] font-medium text-text-muted mr-0.5">Sort:</span>
+            {SORT_OPTIONS.map(({ key, label }) => {
+              const isActive = sortField === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => handleSort(key)}
+                  className={`text-[11px] font-medium px-1.5 py-0.5 rounded-md transition-all ${isActive ? 'bg-strava-orange/15 text-strava-orange' : 'text-text-muted hover:text-text-primary hover:bg-bg-card/50'}`}
+                >
+                  {label} {isActive ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}
+                </button>
+              );
+            })}
           </div>
           <div className="space-y-1 overflow-y-auto" style={{ maxHeight: 470 }}>
-              {filteredRuns.slice(0, 200).map((run) => (
+              {sortedRuns.slice(0, 200).map((run) => (
                 <button
                   key={run.id}
                   onClick={() => setSelectedRunId(run.id)}
