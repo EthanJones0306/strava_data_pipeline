@@ -25,10 +25,10 @@ def exchange_code_for_token(client_id, client_secret, auth_code):
 if __name__ == "__main__":
 
     load_dotenv()
-    CLIENT_ID = os.getenv("CLIENT_ID") # "YOUR_CLIENT
-    CLIENT_SECRET = os.getenv("CLIENT_SECRET") # "YOUR_CLIENT_SECRET"
+    CLIENT_ID = os.getenv("CLIENT_ID") 
+    CLIENT_SECRET = os.getenv("CLIENT_SECRET") 
 
     # One time code 
-    AUTH_CODE = "17a02f846b18eceb78a2c3b9a4e67cf976ab9460" 
+    AUTH_CODE = os.getenv("AUTH_CODE") 
     
     exchange_code_for_token(CLIENT_ID, CLIENT_SECRET, AUTH_CODE)
