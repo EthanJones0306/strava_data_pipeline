@@ -74,8 +74,16 @@ export function computeStats(runs) {
 
     if (run.splits) {
       run.splits.forEach((s) => {
-        if (s.pace_zone && paceZoneCount[s.pace_zone] !== undefined) {
-          paceZoneCount[s.pace_zone]++;
+        if (s.pace_sec) {
+          let zone = 6;
+          const paceThresholds = [240, 270, 300, 330, 360];
+          for (let i = 0; i < paceThresholds.length; i++) {
+            if (s.pace_sec <= paceThresholds[i]) {
+              zone = i + 1;
+              break;
+            }
+          }
+          if (paceZoneCount[zone] !== undefined) paceZoneCount[zone]++;
         }
         if (s.avg_hr) {
           const zone = s.avg_hr < 120 ? 1 : s.avg_hr < 140 ? 2 : s.avg_hr < 155 ? 3 : s.avg_hr < 170 ? 4 : 5;

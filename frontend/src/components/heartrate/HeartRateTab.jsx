@@ -178,8 +178,9 @@ export default function HeartRateTab({ runs, stats }) {
               />
               <Tooltip content={<DotTooltip />} cursor={{ strokeDasharray: '3 3' }} />
               <Scatter data={hrVsPaceData} animationDuration={600} shape={(props) => {
-                const { cx, cy, fill } = props;
+                const { cx, cy, payload } = props;
                 if (cx === undefined || cy === undefined) return null;
+                const fill = HR_ZONE_COLORS[(payload?.zone ?? 3) - 1] || '#A1A1AA';
                 return (
                   <g>
                     <circle cx={cx} cy={cy} r={12} fill={fill} fillOpacity={0.15} filter="url(#hrDotGlow)" />
