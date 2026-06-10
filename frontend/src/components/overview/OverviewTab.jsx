@@ -1,9 +1,11 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid } from 'recharts';
+import { useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { format, parseISO } from 'date-fns';
-import { Route, Clock, Mountain, Repeat, TrendingUp, Zap, Flame, Award } from 'lucide-react';
+import { Route, Clock, Mountain, TrendingUp, Zap, Flame, Award } from 'lucide-react';
 import StatCard from './StatCard';
+import Heatmap from './Heatmap';
 
-const CustomTooltip = ({ active, payload, label }) => {
+function BarTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="glass-card px-4 py-3 shadow-elevated text-sm" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
@@ -15,7 +17,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       ))}
     </div>
   );
-};
+}
 
 function RecentRunsTable({ runs }) {
   return (
@@ -49,11 +51,27 @@ function RecentRunsTable({ runs }) {
 }
 
 export default function OverviewTab({ runs, stats }) {
+  const [barView, setBarView] = useState('week');
+
   const weeklyData = stats.weeklyData.map((w) => ({
     ...w,
     label: format(parseISO(w.week), 'MMM dd'),
     distance: Math.round(w.distance * 10) / 10,
   }));
+
+  const monthlyData = (stats.monthlyData || []).map((m) => ({
+    ...m,
+    label: format(parseISO(m.month + '-01'), 'MMM yyyy'),
+    distance: Math.round(m.distance * 10) / 10,
+  }));
+
+  const yearlyData = (stats.yearlyData || []).map((y) => ({
+    ...y,
+    distance: Math.round(y.distance * 10) / 10,
+  }));
+
+  const barData = barView === 'week' ? weeklyData : barView === 'month' ? monthlyData : yearlyData;
+  const barLabel = barView === 'week' ? 'Distance per week' : barView === 'month' ? 'Distance per month' : 'Distance per year';
 
   const best5k = stats.bestEfforts?.find((b) => b.label === '5K');
   const best5kPace = best5k ? `${Math.floor(best5k.time_sec / 5 / 60)}:${String(Math.round(best5k.time_sec / 5 % 60)).padStart(2, '0')} /km` : 'N/A';
@@ -70,44 +88,58 @@ export default function OverviewTab({ runs, stats }) {
       </svg>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="animate-slide-up stagger-1">
-          <StatCard icon={Route} color="orange" label="Total Distance" value={`${stats.totalDistance} km`} subvalue={`${stats.totalRuns} runs logged`} />
+          <StatCard icon={Route} color="orange" label="Total Distance" value={`${stats.totalDistance} km`} subvalue={`${stats.totalRuns} runs logged`} sparklineData={stats.sparklineData} />
         </div>
         <div className="animate-slide-up stagger-2">
-          <StatCard icon={Clock} color="blue" label="Total Time" value={stats.totalTimeDisplay} subvalue={`Avg ${stats.avgDistance} km/run`} />
+          <StatCard icon={Clock} color="blue" label="Total Time" value={stats.totalTimeDisplay} subvalue={`Avg ${stats.avgDistance} km/run`} sparklineData={stats.sparklineData} />
         </div>
         <div className="animate-slide-up stagger-3">
-          <StatCard icon={Mountain} color="green" label="Total Elevation" value={`${stats.totalElevation} m`} subvalue={`${Math.round(stats.totalElevation / stats.totalRuns)} m avg/run`} />
+          <StatCard icon={Mountain} color="green" label="Total Elevation" value={`${stats.totalElevation} m`} subvalue={`${Math.round(stats.totalElevation / stats.totalRuns)} m avg/run`} sparklineData={stats.sparklineData} />
         </div>
         <div className="animate-slide-up stagger-4">
-          <StatCard icon={TrendingUp} color="purple" label="Avg Pace" value={stats.avgPaceDisplay} subvalue={`Max HR: ${stats.maxHR || 'N/A'} bpm`} />
+          <StatCard icon={TrendingUp} color="purple" label="Avg Pace" value={stats.avgPaceDisplay} subvalue={`Max HR: ${stats.maxHR || 'N/A'} bpm`} sparklineData={stats.sparklineData} />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card p-5">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h3 className="text-sm font-bold text-text-primary m-0">Weekly Volume</h3>
-              <p className="text-xs text-text-muted mt-0.5">Distance per week</p>
+      <div className="card p-5">
+        <Heatmap runs={runs} dailyData={stats.dailyData} />
+      </div>
+
+      <div className="card p-5">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h3 className="text-sm font-bold text-text-primary m-0">Volume</h3>
+            <p className="text-xs text-text-muted mt-0.5">{barLabel}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex gap-1 p-0.5 rounded-lg bg-bg-card border border-border-primary/50">
+              {['week', 'month', 'year'].map((v) => (
+                <button key={v} onClick={() => setBarView(v)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 capitalize ${barView === v ? 'bg-strava-orange text-white shadow-glow-orange' : 'text-text-muted hover:text-text-primary'}`}>
+                  {v}
+                </button>
+              ))}
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg-card border border-border-primary/50">
               <span className="w-2.5 h-2.5 rounded-sm" style={{ background: 'var(--color-strava-orange)' }} />
               <span className="text-[11px] font-medium text-text-muted">km</span>
             </div>
           </div>
-          <div className="chart-container" style={{ height: 220 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyData} margin={{ top: 5, right: 5, bottom: 5, left: -15 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#27272A" strokeOpacity={0.4} vertical={false} />
-                <XAxis dataKey="label" tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'color-mix(in srgb, var(--color-strava-orange) 5%, transparent)' }} />
-                <Bar dataKey="distance" fill="url(#barGradient)" radius={[6, 6, 0, 0]} name="Distance" maxBarSize={32} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
         </div>
+        <div className="chart-container" style={{ height: 220 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={barData} margin={{ top: 5, right: 5, bottom: 5, left: -15 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#27272A" strokeOpacity={0.4} vertical={false} />
+              <XAxis dataKey="label" tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#71717A', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip content={<BarTooltip />} cursor={{ fill: 'color-mix(in srgb, var(--color-strava-orange) 5%, transparent)' }} />
+              <Bar dataKey="distance" fill="url(#barGradient)" radius={[6, 6, 0, 0]} name="Distance" maxBarSize={barView === 'year' ? 48 : 32} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
+      <div className="grid grid-cols-1 gap-6">
         <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <div>

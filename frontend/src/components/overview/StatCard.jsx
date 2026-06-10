@@ -32,7 +32,37 @@ function AnimatedValue({ value, suffix = '' }) {
   return suffix;
 }
 
-export default function StatCard({ icon: Icon, label, value, subvalue, color = 'orange', trend, decimals = 1 }) {
+function MiniSparkline({ data, color }) {
+  if (!data || data.length < 2) return null;
+  const max = Math.max(...data, 1);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const w = data.length * 10;
+  const h = 32;
+  const points = data.map((v, i) => `${i * 10 + 5},${h - ((v - min) / range) * (h - 4) - 2}`).join(' ');
+  return (
+    <div className="mt-2.5" style={{ height: h }}>
+      <svg width="100%" height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="opacity-60">
+        <defs>
+          <linearGradient id={`spark-${data.join('')}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.2} />
+            <stop offset="100%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <polyline
+          points={points}
+          fill="none"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
+export default function StatCard({ icon: Icon, label, value, subvalue, color = 'orange', trend, decimals = 1, sparklineData }) {
   const colorMap = {
     orange: { bg: 'color-mix(in srgb, var(--color-strava-orange) 12%, transparent)', icon: 'var(--color-strava-orange)', border: 'color-mix(in srgb, var(--color-strava-orange) 20%, transparent)', glow: '0 0 20px color-mix(in srgb, var(--color-strava-orange) 15%, transparent)' },
     green: { bg: 'rgba(34,197,94,0.12)', icon: '#22C55E', border: 'rgba(34,197,94,0.2)', glow: '0 0 20px rgba(34,197,94,0.15)' },
@@ -61,6 +91,7 @@ export default function StatCard({ icon: Icon, label, value, subvalue, color = '
         )}
       </div>
       <p className="text-2xl font-bold text-text-primary mb-1 tracking-tight font-mono">{value}</p>
+      {sparklineData && <MiniSparkline data={sparklineData} color={c.icon} />}
       <p className="text-sm text-text-muted font-medium">{label}</p>
       {subvalue && <p className="text-xs text-text-muted/60 mt-1.5">{subvalue}</p>}
     </div>

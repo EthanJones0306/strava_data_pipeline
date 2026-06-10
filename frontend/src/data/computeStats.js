@@ -20,17 +20,31 @@ export function computeStats(runs) {
 
   const weeklyData = {};
   const monthlyData = {};
+  const yearlyData = {};
   const paceZoneCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
   const hrZoneCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   const weeklyKm = {};
   const bestEfforts = {};
 
+  const dailyData = {};
+
   runs.forEach((run) => {
     const d = new Date(run.date);
+    const dayKey = d.toISOString().slice(0, 10);
     const weekStart = new Date(d);
     weekStart.setDate(d.getDate() - d.getDay());
     const weekKey = weekStart.toISOString().slice(0, 10);
     const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const yearKey = `${d.getFullYear()}`;
+
+    if (!dailyData[dayKey]) {
+      dailyData[dayKey] = { distance: 0, count: 0, paceSum: 0 };
+    }
+    dailyData[dayKey].distance += run.distance_km;
+    dailyData[dayKey].count += 1;
+    if (run.pace_sec_per_km) {
+      dailyData[dayKey].paceSum += run.pace_sec_per_km;
+    }
 
     weeklyKm[weekKey] = (weeklyKm[weekKey] || 0) + run.distance_km;
 
@@ -49,6 +63,14 @@ export function computeStats(runs) {
     monthlyData[monthKey].distance += run.distance_km;
     monthlyData[monthKey].time += run.moving_time_sec;
     monthlyData[monthKey].elevation += run.elevation_gain_m;
+
+    if (!yearlyData[yearKey]) {
+      yearlyData[yearKey] = { year: yearKey, label: yearKey, runs: 0, distance: 0, time: 0, elevation: 0 };
+    }
+    yearlyData[yearKey].runs++;
+    yearlyData[yearKey].distance += run.distance_km;
+    yearlyData[yearKey].time += run.moving_time_sec;
+    yearlyData[yearKey].elevation += run.elevation_gain_m;
 
     if (run.splits) {
       run.splits.forEach((s) => {
@@ -75,9 +97,14 @@ export function computeStats(runs) {
     .sort((a, b) => a.week.localeCompare(b.week))
     .slice(-16);
 
+  const sparklineData = weeklyArray.slice(-8).map((w) => Math.round(w.distance * 10) / 10);
+
   const monthlyArray = Object.values(monthlyData)
     .sort((a, b) => a.month.localeCompare(b.month))
     .slice(-12);
+
+  const yearlyArray = Object.values(yearlyData)
+    .sort((a, b) => a.year.localeCompare(b.year));
 
   const paceTrend = runs.filter((r) => r.pace_sec_per_km)
     .slice(-30)
@@ -136,6 +163,9 @@ export function computeStats(runs) {
     weeklyKm,
     weeklyData: weeklyArray,
     monthlyData: monthlyArray,
+    yearlyData: yearlyArray,
+    dailyData,
+    sparklineData,
     paceTrend,
     paceZoneCount,
     hrZoneCount,

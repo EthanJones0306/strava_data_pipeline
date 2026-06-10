@@ -1,4 +1,4 @@
-import { ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell, Line, ComposedChart, Legend } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Line, ComposedChart, Legend } from 'recharts';
 import { format, parseISO } from 'date-fns';
 import { Heart, Activity, BarChart3 } from 'lucide-react';
 
@@ -141,6 +141,17 @@ export default function HeartRateTab({ runs, stats }) {
           <h3 className="text-sm font-bold text-text-primary m-0">HR &rarr; Pace Relationship</h3>
           <p className="text-xs text-text-muted mt-0.5">Each dot is a run. Orange dashed line = trend (linear regression).</p>
         </div>
+        <svg height="0" width="0" style={{ position: 'absolute' }}>
+          <defs>
+            <filter id="hrDotGlow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+        </svg>
         <div className="chart-container" style={{ height: 380 }}>
           <ResponsiveContainer width="100%" height="100%">
             <ScatterChart margin={{ top: 10, right: 30, bottom: 30, left: 20 }}>
@@ -166,11 +177,16 @@ export default function HeartRateTab({ runs, stats }) {
                 label={{ value: 'Heart Rate (bpm)', angle: -90, position: 'insideLeft', offset: 5, fill: '#71717A', fontSize: 11, style: { fontWeight: 500 } }}
               />
               <Tooltip content={<DotTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-              <Scatter data={hrVsPaceData} shape="circle" name="Runs">
-                {hrVsPaceData.map((entry, index) => (
-                  <Cell key={index} fill={HR_ZONE_COLORS[entry.zone - 1] || '#71717A'} fillOpacity={0.7} />
-                ))}
-              </Scatter>
+              <Scatter data={hrVsPaceData} shape={(props) => {
+                const { cx, cy, fill } = props;
+                if (cx === undefined || cy === undefined) return null;
+                return (
+                  <g>
+                    <circle cx={cx} cy={cy} r={12} fill={fill} fillOpacity={0.15} filter="url(#hrDotGlow)" />
+                    <circle cx={cx} cy={cy} r={7} fill={fill} fillOpacity={0.85} stroke="#18181B" strokeWidth={2} />
+                  </g>
+                );
+              }} name="Runs" />
               {trendLineData.length > 0 && (
                 <Line data={trendLineData} dataKey="hr" stroke="var(--color-strava-orange)" strokeWidth={2.5} strokeDasharray="6 4" dot={false} activeDot={false} name="Trend" />
               )}
