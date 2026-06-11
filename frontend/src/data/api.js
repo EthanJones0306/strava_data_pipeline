@@ -51,10 +51,25 @@ function mapRun(run) {
 }
 
 export async function fetchRuns() {
-  const res = await fetch(`${API_BASE}/api/runs`);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  const data = await res.json();
-  return data.runs.map(mapRun).sort((a, b) => b.date - a.date);
+  // Tier 1: API
+  try {
+    const res = await fetch(`${API_BASE}/api/runs`);
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    const data = await res.json();
+    return data.runs.map(mapRun).sort((a, b) => b.date - a.date);
+  } catch {}
+
+  // Tier 2: runs.json (full DB export)
+  try {
+    const res = await fetch('/runs.json');
+    if (!res.ok) throw new Error('No JSON fallback');
+    const data = await res.json();
+    if (!data.runs) throw new Error('Invalid format');
+    return data.runs.map(mapRun).sort((a, b) => b.date - a.date);
+  } catch {}
+
+  // Tier 3: let caller fall back to parseCSV
+  throw new Error('All data sources failed');
 }
 
 export async function fetchLatestRun() {

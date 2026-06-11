@@ -13,6 +13,7 @@ from run_store import get_all_runs, get_run, seed_from_csv, sync_from_strava, ge
 from analysis_store import list_analyses, get_analysis, save_analysis
 from analysis_service import get_or_generate_analysis, generate_analysis_background
 from health_store import save_health_snapshot, get_health_snapshots
+from export_frontend_data import export_frontend_data
 import log_util  # patches built-in print with timestamps
 
 
@@ -23,10 +24,6 @@ _pending_analyses = set()
 async def lifespan(app: FastAPI):
     init_db()
     seed_from_csv()
-    try:
-        sync_from_strava()
-    except Exception as e:
-        print(f"[WARN] Strava sync failed on startup: {e}")
     yield
 
 
@@ -100,6 +97,7 @@ def api_health():
 @app.post("/api/sync")
 def api_trigger_sync():
     sync_from_strava()
+    export_frontend_data()
     return get_sync_status()
 
 

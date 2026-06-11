@@ -31,3 +31,6 @@ backend/runs.json
 
 # Frontend
 frontend/node_modules/
+
+# Auto-generated DB export (regenerated on every sync)
+frontend/public/runs.json
