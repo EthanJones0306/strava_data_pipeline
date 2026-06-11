@@ -11,6 +11,7 @@ import PaceTab from '../pace/PaceTab';
 import HeartRateTab from '../heartrate/HeartRateTab';
 import ElevationTab from '../elevation/ElevationTab';
 import DeepDiveTab from '../deepdive/DeepDiveTab';
+import HealthTab from '../health/HealthTab';
 
 export default function DashboardLayout() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -53,6 +54,7 @@ export default function DashboardLayout() {
       case 'heartrate': return <HeartRateTab runs={runs} stats={stats} />;
       case 'elevation': return <ElevationTab runs={runs} stats={stats} />;
       case 'deepdive': return <DeepDiveTab runs={runs} />;
+      case 'health': return <HealthTab />;
       default: return <OverviewTab runs={runs} stats={stats} />;
     }
   };

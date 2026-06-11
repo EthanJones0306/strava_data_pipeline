@@ -84,3 +84,9 @@ export async function fetchAnalysis(id) {
   if (!res.ok) return null;
   return res.json();
 }
+
+export async function fetchHealthData(limit = 90) {
+  const res = await fetch(`${API_BASE}/api/health-data?limit=${limit}`);
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}

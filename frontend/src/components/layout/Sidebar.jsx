@@ -1,4 +1,4 @@
-import { Activity, Gauge, Heart, Mountain, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Activity, Gauge, Heart, Mountain, Search, HeartPulse, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const tabs = [
   { id: 'overview', label: 'Overview', icon: Activity },
@@ -6,6 +6,7 @@ const tabs = [
   { id: 'heartrate', label: 'Heart Rate', icon: Heart },
   { id: 'elevation', label: 'Elevation & Power', icon: Mountain },
   { id: 'deepdive', label: 'Deep Dive', icon: Search },
+  { id: 'health', label: 'Health', icon: HeartPulse },
 ];
 
 export default function Sidebar({ activeTab, onTabChange, collapsed, onToggle }) {

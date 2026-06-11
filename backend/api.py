@@ -1,7 +1,9 @@
 import os
 import sys
+import json
+import urllib.parse
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -10,6 +12,7 @@ from database import init_db
 from run_store import get_all_runs, get_run, seed_from_csv, sync_from_strava, get_sync_status
 from analysis_store import list_analyses, get_analysis, save_analysis
 from analysis_service import get_or_generate_analysis, generate_analysis_background
+from health_store import save_health_snapshot, get_health_snapshots
 import log_util  # patches built-in print with timestamps
 
 
@@ -98,4 +101,37 @@ def api_health():
 def api_trigger_sync():
     sync_from_strava()
     return get_sync_status()
+
+
+async def _parse_health_body(request: Request):
+    content_type = request.headers.get("content-type", "")
+    raw = await request.body()
+
+    if "application/json" in content_type:
+        return await request.json()
+
+    decoded = raw.decode("utf-8")
+    decoded = urllib.parse.unquote_plus(decoded).rstrip("=")
+    brace = decoded.find("{")
+    if brace >= 0:
+        decoded = decoded[brace:]
+    return json.loads(decoded)
+
+
+@app.post("/api/health")
+@app.post("/api/health-data")
+async def receive_health_data(request: Request):
+    try:
+        data = await _parse_health_body(request)
+    except (json.JSONDecodeError, ValueError, UnicodeDecodeError) as e:
+        raw = (await request.body()).decode("utf-8", errors="replace")[:200]
+        return {"status": "error", "msg": f"Invalid data: {e}. Raw: {raw}"}
+
+    snap_id = save_health_snapshot(data)
+    return {"status": "success", "id": snap_id}
+
+
+@app.get("/api/health-data")
+def api_get_health_data(limit: int = 30):
+    return get_health_snapshots(limit=limit)
 

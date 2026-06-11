@@ -51,3 +51,22 @@ class BestEffort(SQLModel, table=True):
     distance_m: int
 
     run: Run = Relationship(back_populates="best_efforts")
+
+
+class HealthSnapshot(SQLModel, table=True):
+    __tablename__ = "health_snapshots"
+
+    id: int = Field(default=None, primary_key=True)
+    date: str = Field(index=True, unique=True)
+    recorded_at: str = ""
+    steps: Optional[int] = None
+    wrist_temp: Optional[float] = None
+    active_energy: Optional[float] = None
+    rhr: Optional[int] = None
+    cardio_recovery: Optional[float] = None
+    flights: Optional[int] = None
+    walk_run_distance: Optional[float] = None
+    walking_hr: Optional[float] = None
+    running_stride_length: Optional[float] = None
+    exercise_minutes: Optional[int] = None
+    v02_max: Optional[float] = None
