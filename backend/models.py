@@ -70,3 +70,17 @@ class HealthSnapshot(SQLModel, table=True):
     running_stride_length: Optional[float] = None
     exercise_minutes: Optional[int] = None
     v02_max: Optional[float] = None
+
+
+class RunningEconomy(SQLModel, table=True):
+    __tablename__ = "running_economy"
+
+    id: int = Field(default=None, primary_key=True)
+    workout_uuid: str = Field(index=True, unique=True)
+    run_id: Optional[int] = Field(foreign_key="runs.id", default=None, nullable=True)
+    start_date: str = Field(index=True)
+    cadence_spm: Optional[float] = None
+    vertical_oscillation_cm: Optional[float] = None
+    ground_contact_time_ms: Optional[float] = None
+    stride_length_m: Optional[float] = None
+    raw_json: Optional[str] = None

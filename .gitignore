@@ -32,5 +32,7 @@ backend/runs.json
 # Frontend
 frontend/node_modules/
 
-# Auto-generated DB export (regenerated on every sync)
+# Auto-generated DB exports (regenerated on every sync)
 frontend/public/runs.json
+frontend/public/health.json
+frontend/public/workouts.json

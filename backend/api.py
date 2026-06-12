@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import urllib.parse
+from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,7 +14,8 @@ from run_store import get_all_runs, get_run, seed_from_csv, sync_from_strava, ge
 from analysis_store import list_analyses, get_analysis, save_analysis
 from analysis_service import get_or_generate_analysis, generate_analysis_background
 from health_store import save_health_snapshot, get_health_snapshots
-from export_frontend_data import export_frontend_data
+from workout_store import save_workout, get_workout_for_run, get_all_workouts
+from export_frontend_data import export_frontend_data, export_health_data, export_workout_data
 import log_util  # patches built-in print with timestamps
 
 
@@ -126,10 +128,36 @@ async def receive_health_data(request: Request):
         return {"status": "error", "msg": f"Invalid data: {e}. Raw: {raw}"}
 
     snap_id = save_health_snapshot(data)
+    export_health_data()
     return {"status": "success", "id": snap_id}
 
 
 @app.get("/api/health-data")
 def api_get_health_data(limit: int = 30):
     return get_health_snapshots(limit=limit)
+
+
+@app.post("/api/workout")
+@app.post("/api/workout-data")
+async def receive_workout(request: Request):
+    try:
+        data = await _parse_health_body(request)
+    except (json.JSONDecodeError, ValueError, UnicodeDecodeError) as e:
+        raw = (await request.body()).decode("utf-8", errors="replace")[:200]
+        return {"status": "error", "msg": f"Invalid data: {e}. Raw: {raw}"}
+
+    saved = save_workout(data)
+    if saved:
+        export_workout_data()
+    return {"status": "success", "workout": saved}
+
+
+@app.get("/api/workout")
+def api_get_workouts(run_id: Optional[int] = None):
+    if run_id is not None:
+        result = get_workout_for_run(run_id)
+        if not result:
+            raise HTTPException(404, "No workout found for this run")
+        return result
+    return get_all_workouts()
 

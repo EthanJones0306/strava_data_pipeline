@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { format } from 'date-fns';
-import { Search, X, SlidersHorizontal, Footprints, Clock, Route, Heart, Mountain, Flame, ChevronRight, Brain } from 'lucide-react';
-import { fetchAnalysis } from '../../data/api';
+import { Search, X, SlidersHorizontal, Footprints, Clock, Route, Heart, Mountain, Flame, ChevronRight, Brain, Timer, Ruler, MoveVertical } from 'lucide-react';
+import { fetchAnalysis, fetchWorkoutForRun } from '../../data/api';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -54,6 +54,8 @@ export default function DeepDiveTab({ runs }) {
   const [selectedRunId, setSelectedRunId] = useState(null);
   const [analysis, setAnalysis] = useState(null);
   const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [workout, setWorkout] = useState(null);
+  const [workoutLoading, setWorkoutLoading] = useState(false);
   const [sortField, setSortField] = useState('date');
   const [sortDir, setSortDir] = useState('desc');
   const [nameFilter, setNameFilter] = useState('');
@@ -200,6 +202,7 @@ export default function DeepDiveTab({ runs }) {
   useEffect(() => {
     if (!selectedRunId) {
       setAnalysis(null);
+      setWorkout(null);
       return;
     }
     setAnalysis(null);
@@ -208,6 +211,13 @@ export default function DeepDiveTab({ runs }) {
       setAnalysis(a);
       setAnalysisLoading(false);
     }).catch(() => setAnalysisLoading(false));
+
+    setWorkout(null);
+    setWorkoutLoading(true);
+    fetchWorkoutForRun(selectedRunId).then((w) => {
+      setWorkout(w);
+      setWorkoutLoading(false);
+    }).catch(() => setWorkoutLoading(false));
   }, [selectedRunId]);
 
   const selectedRunData = useMemo(() => {
@@ -407,7 +417,41 @@ export default function DeepDiveTab({ runs }) {
                 </div>
               </div>
 
-              {selectedRunData.splits.length > 0 && (
+                {workoutLoading && (
+                  <div className="card p-5 flex items-center justify-center gap-3" style={{ minHeight: 60 }}>
+                    <div className="w-4 h-4 border-2 border-strava-orange border-t-transparent rounded-full animate-spin" />
+                    <span className="text-xs text-text-muted">Loading economy data...</span>
+                  </div>
+                )}
+                {workout && (
+                  <div className="card p-5">
+                    <h3 className="text-sm font-bold text-text-primary m-0 mb-3">Running Economy</h3>
+                    <div className="grid grid-cols-4 gap-3">
+                      <div className="col-span-1 bg-bg-card rounded-xl p-3 flex flex-col items-center">
+                        <Footprints size={16} className="text-strava-orange mb-1" />
+                        <span className="text-lg font-bold font-mono text-text-primary">{workout.cadence_spm}</span>
+                        <span className="text-[10px] font-medium text-text-muted">cadence (spm)</span>
+                      </div>
+                      <div className="col-span-1 bg-bg-card rounded-xl p-3 flex flex-col items-center">
+                        <MoveVertical size={16} className="text-blue-500 mb-1" />
+                        <span className="text-lg font-bold font-mono text-text-primary">{workout.vertical_oscillation_cm}</span>
+                        <span className="text-[10px] font-medium text-text-muted">vert osc (cm)</span>
+                      </div>
+                      <div className="col-span-1 bg-bg-card rounded-xl p-3 flex flex-col items-center">
+                        <Timer size={16} className="text-green-500 mb-1" />
+                        <span className="text-lg font-bold font-mono text-text-primary">{workout.ground_contact_time_ms}</span>
+                        <span className="text-[10px] font-medium text-text-muted">GCT (ms)</span>
+                      </div>
+                      <div className="col-span-1 bg-bg-card rounded-xl p-3 flex flex-col items-center">
+                        <Ruler size={16} className="text-purple-500 mb-1" />
+                        <span className="text-lg font-bold font-mono text-text-primary">{workout.stride_length_m ?? '-'}</span>
+                        <span className="text-[10px] font-medium text-text-muted">stride (m)</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {selectedRunData.splits.length > 0 && (
                 <div className="card p-5">
                   <div className="mb-4">
                     <h3 className="text-sm font-bold text-text-primary m-0">Kilometer Splits</h3>

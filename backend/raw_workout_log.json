@@ -1,0 +1,132 @@
+{
+  "uuid": "CF927165-E9BA-451D-B2E3-37DC3EC5A9CE",
+  "name": "Running",
+  "activity": {
+    "name": "Running",
+    "type": 37
+  },
+  "startDate": "2026-06-11T10:04:48Z",
+  "endDate": "2026-06-11T10:34:53Z",
+  "source": "Ethan\u2019s Apple\u00a0Watch",
+  "zones": {
+    "zone4": {
+      "name": "PEAK",
+      "rate": 1.0,
+      "time": {
+        "value": 1798,
+        "unit": "sec"
+      }
+    },
+    "zone3": {
+      "name": "CARDIO",
+      "rate": 0.0,
+      "time": {
+        "value": 0,
+        "unit": "sec"
+      }
+    },
+    "zone2": {
+      "name": "FAT BURN",
+      "rate": 0.0,
+      "time": {
+        "value": 0,
+        "unit": "sec"
+      }
+    },
+    "zone1": {
+      "name": "WARM UP",
+      "rate": 0.0,
+      "time": {
+        "value": 0,
+        "unit": "sec"
+      }
+    }
+  },
+  "duration": {
+    "value": 1798,
+    "unit": "sec"
+  },
+  "activeCalories": {
+    "value": 440,
+    "unit": "kcal"
+  },
+  "distance": {
+    "value": 5.4,
+    "unit": "km"
+  },
+  "pace": {
+    "value": "5\u203233\u2033",
+    "unit": "/km"
+  },
+  "averageIntensity": {
+    "value": 94,
+    "unit": "%"
+  },
+  "minIntensity": {
+    "value": 86,
+    "unit": "%"
+  },
+  "maxIntensity": {
+    "value": 99,
+    "unit": "%"
+  },
+  "averageMETs": {
+    "value": 12.3,
+    "unit": "METs"
+  },
+  "step": {
+    "value": 5092,
+    "unit": "steps"
+  },
+  "cadence": {
+    "value": 170,
+    "unit": "spm"
+  },
+  "elevationAscended": {
+    "value": 95,
+    "unit": "m"
+  },
+  "runningPower": {
+    "value": 255,
+    "unit": "W"
+  },
+  "runningVerticalOscillation": {
+    "value": 9.2,
+    "unit": "cm"
+  },
+  "runningGroundContactTime": {
+    "value": 266,
+    "unit": "ms"
+  },
+  "runningStrideLength": {
+    "value": 1.1,
+    "unit": "m"
+  },
+  "runningPace": {
+    "value": "5\u203230\u2033",
+    "unit": "/km"
+  },
+  "averageHeartRate": {
+    "value": 185,
+    "unit": "bpm"
+  },
+  "minHeartRate": {
+    "value": 169,
+    "unit": "bpm"
+  },
+  "maxHeartRate": {
+    "value": 195,
+    "unit": "bpm"
+  },
+  "weather": {
+    "humidity": "72%",
+    "temperature": "17\u00b0C"
+  },
+  "device": {
+    "name": "Apple Watch",
+    "manufacturer": "Apple Inc.",
+    "model": "Watch",
+    "hardwareVersion": "Watch7,13",
+    "softwareVersion": "26.3"
+  }
+}
