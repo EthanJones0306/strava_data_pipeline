@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { parseCSV } from '../../data/parseCSV';
 import { computeStats } from '../../data/computeStats';
-import { fetchRuns } from '../../data/api';
+import { fetchRunsBootstrap, fetchRunsUpdate } from '../../data/api';
 import { ThemeProvider } from '../../data/theme.jsx';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -22,7 +22,7 @@ export default function DashboardLayout() {
   const [welcomeFading, setWelcomeFading] = useState(false);
 
   useEffect(() => {
-    fetchRuns()
+    fetchRunsBootstrap()
       .then((runs) => {
         setApiRuns(runs);
         setLoading(false);
@@ -31,6 +31,17 @@ export default function DashboardLayout() {
         setApiRuns(null);
         setLoading(false);
       });
+  }, []);
+
+  useEffect(() => {
+    function onVisibility() {
+      if (document.visibilityState !== 'visible') return;
+      fetchRunsUpdate().then((updated) => {
+        if (updated) setApiRuns(updated);
+      });
+    }
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
   useEffect(() => {

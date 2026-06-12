@@ -50,27 +50,70 @@ function mapRun(run) {
   };
 }
 
-export async function fetchRuns() {
-  // Tier 1: API
+function sortRuns(runs) {
+  return runs.sort((a, b) => b.date - a.date);
+}
+
+// --- Bootstrap (load from JSON exports on startup) ---
+
+export async function fetchRunsBootstrap() {
+  const res = await fetch('/runs.json');
+  if (!res.ok) throw new Error('No runs.json fallback');
+  const data = await res.json();
+  if (!data.runs) throw new Error('Invalid runs.json format');
+  return sortRuns(data.runs.map(mapRun));
+}
+
+export async function fetchHealthDataBootstrap() {
+  const res = await fetch('/health.json');
+  if (!res.ok) throw new Error('No health.json fallback');
+  const data = await res.json();
+  if (!Array.isArray(data)) throw new Error('Invalid health.json format');
+  return data;
+}
+
+export async function fetchWorkoutsBootstrap() {
+  const res = await fetch('/workouts.json');
+  if (!res.ok) throw new Error('No workouts.json fallback');
+  const data = await res.json();
+  if (!Array.isArray(data)) throw new Error('Invalid workouts.json format');
+  return data;
+}
+
+// --- Update (hit API on tab focus, silent fail) ---
+
+export async function fetchRunsUpdate() {
   try {
     const res = await fetch(`${API_BASE}/api/runs`);
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
-    return data.runs.map(mapRun).sort((a, b) => b.date - a.date);
-  } catch {}
-
-  // Tier 2: runs.json (full DB export)
-  try {
-    const res = await fetch('/runs.json');
-    if (!res.ok) throw new Error('No JSON fallback');
-    const data = await res.json();
-    if (!data.runs) throw new Error('Invalid format');
-    return data.runs.map(mapRun).sort((a, b) => b.date - a.date);
-  } catch {}
-
-  // Tier 3: let caller fall back to parseCSV
-  throw new Error('All data sources failed');
+    return sortRuns(data.runs.map(mapRun));
+  } catch {
+    return null;
+  }
 }
+
+export async function fetchHealthDataUpdate(limit = 90) {
+  try {
+    const res = await fetch(`${API_BASE}/api/health-data?limit=${limit}`);
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchWorkoutsUpdate() {
+  try {
+    const res = await fetch(`${API_BASE}/api/workout`);
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+// --- Direct API calls (always live) ---
 
 export async function fetchLatestRun() {
   const res = await fetch(`${API_BASE}/api/runs/latest`);
@@ -100,27 +143,6 @@ export async function fetchAnalysis(id) {
   return res.json();
 }
 
-export async function fetchHealthData(limit = 90) {
-  // Tier 1: API
-  try {
-    const res = await fetch(`${API_BASE}/api/health-data?limit=${limit}`);
-    if (!res.ok) throw new Error(`API error: ${res.status}`);
-    return res.json();
-  } catch {}
-
-  // Tier 2: health.json (full DB export)
-  try {
-    const res = await fetch('/health.json');
-    if (!res.ok) throw new Error('No health fallback');
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error('Invalid format');
-    return data;
-  } catch {}
-
-  // Tier 3: give up
-  throw new Error('All health data sources failed');
-}
-
 export async function fetchWorkoutForRun(runId) {
   // Tier 1: API
   try {
@@ -139,22 +161,4 @@ export async function fetchWorkoutForRun(runId) {
   } catch {}
 
   return null;
-}
-
-export async function fetchWorkouts() {
-  // Tier 1: API
-  try {
-    const res = await fetch(`${API_BASE}/api/workout`);
-    if (!res.ok) throw new Error(`API error: ${res.status}`);
-    return res.json();
-  } catch {}
-
-  // Tier 2: workouts.json fallback
-  try {
-    const res = await fetch('/workouts.json');
-    if (!res.ok) throw new Error('No workout fallback');
-    return res.json();
-  } catch {}
-
-  throw new Error('All workout data sources failed');
 }
