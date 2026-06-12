@@ -28,6 +28,11 @@ def save_workout(data, session=None):
             print("Workout save: missing uuid, skipping")
             return None
 
+        activity_name = (data.get("activity") or {}).get("name", "") or data.get("name", "")
+        if "run" not in activity_name.lower():
+            print(f"Workout save: skipping non-running activity ({activity_name})")
+            return None
+
         start_date_raw = data.get("startDate", "")
         date_str = start_date_raw[:10] if len(start_date_raw) >= 10 else start_date_raw
 
