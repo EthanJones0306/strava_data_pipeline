@@ -5,6 +5,7 @@ from run_store import get_run, get_all_runs
 from analysis_store import get_analysis, save_analysis
 from gemini_analysis import analyze_run
 from run_tracker import get_preferred_model, set_preferred_model
+from workout_store import get_workout_for_run
 
 
 def _run_to_comprehensive(run):
@@ -49,7 +50,7 @@ def _run_to_comprehensive(run):
     hr = run.get("average_hr")
     max_hr = run.get("max_hr")
 
-    return {
+    result = {
         "run_name": run.get("name", ""),
         "date": run.get("date", ""),
         "description": "N/A",
@@ -69,6 +70,19 @@ def _run_to_comprehensive(run):
         "splits": splits_str,
         "best_efforts": be_str,
     }
+
+    economy = get_workout_for_run(run.get("id"))
+    if economy:
+        result["economy"] = (
+            f"Cadence: {economy['cadence_spm']} spm | "
+            f"Vertical Oscillation: {economy['vertical_oscillation_cm']} cm | "
+            f"Ground Contact Time: {economy['ground_contact_time_ms']} ms | "
+            f"Stride Length: {economy['stride_length_m']} m"
+        )
+    else:
+        result["economy"] = "No running economy data available"
+
+    return result
 
 
 def _run_to_context_format(run):

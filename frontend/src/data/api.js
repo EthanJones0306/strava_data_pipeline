@@ -115,16 +115,6 @@ export async function fetchWorkoutsUpdate() {
 
 // --- Direct API calls (always live) ---
 
-export async function fetchLatestRun() {
-  const res = await fetch(`${API_BASE}/api/runs/latest`);
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  const data = await res.json();
-  return {
-    run: mapRun(data.run),
-    analysis: data.analysis,
-  };
-}
-
 export async function fetchRun(id) {
   const res = await fetch(`${API_BASE}/api/runs/${id}`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);

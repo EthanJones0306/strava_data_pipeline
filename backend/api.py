@@ -60,9 +60,7 @@ def api_get_latest_run():
     data = get_all_runs()
     if not data["runs"]:
         raise HTTPException(404)
-    run = data["runs"][-1]
-    analysis = get_or_generate_analysis(run["id"])
-    return {"run": run, "analysis": analysis}
+    return {"run": data["runs"][-1]}
 
 
 @app.get("/api/runs/{activity_id}")

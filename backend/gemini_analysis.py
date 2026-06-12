@@ -70,6 +70,9 @@ def _build_prompt(latest, context_lines):
 ## BEST EFFORTS
 {latest.get('best_efforts', 'No best efforts recorded')}
 
+## RUNNING ECONOMY
+{latest.get('economy', 'No running economy data available')}
+
 ## RECENT RUN HISTORY (for comparison)
 {chr(10).join(context_lines) if context_lines else 'No recent context runs available.'}
 
@@ -78,7 +81,8 @@ Provide a concise coaching analysis covering:
 1. **Pacing** — was the pace consistent across splits? Any positive/negative splitting?
 2. **Heart Rate** — how did HR respond to effort? Any anomalies compared to recent runs?
 3. **Performance** — how does this run compare to the recent ones? Fitness trend?
-4. **One Actionable Tip** — the single most impactful thing to improve next time.
+4. **Running Economy** — if economy data is present, analyse cadence (target 170-180 spm), vertical oscillation (lower is better), ground contact time (shorter is better), and stride length. Relate them to pace and efficiency.
+5. **One Actionable Tip** — the single most impactful thing to improve next time.
 
 Keep the analysis to 3-4 short paragraphs. Be specific with numbers, not generic."""
 
